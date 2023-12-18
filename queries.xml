@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queries>
+  <aQuery>
+
+    <all-regions/>
+    <supplyDemandQuery title="elec gen by region (incl CHP)">
+    <axis1 name="region">region</axis1>
+    <axis2 name="Year">physical-output[@vintage]</axis2>
+    <xPath buildList="true" dataName="output" group="false" sumAll="true">*[@type='sector' (:collapse:)]//
+               *[@type='technology' (:collapse:) and not (@name='elect_td_bld')]/
+               *[@type='output' (:collapse:)  and (@name='electricity' or @name='elect_td_bld')]/
+               physical-output/node()</xPath>
+    <comments/>
+</supplyDemandQuery>
+
+  </aQuery>
+
+   <aQuery>
+     <all-regions/>
+     <supplyDemandQuery title="total final energy by region">
+    <axis1 name="region">region</axis1>
+    <axis2 name="Year">demand-physical[@vintage]</axis2>
+    <xPath buildList="true" dataName="input" group="false" sumAll="false">*[@type='sector' (:collapse:) and ((@name='building' or @name='industry' or @name='transportation') or
+            (exists(child::keyword/@final-energy)))]//*[@type='input' (:collapse:) and
+            not(@name='limestone' or @name='process heat cement' or @name='industrial energy use' or
+                @name='industrial feedstocks' or @name='renewable' or contains(@name, 'trn_') or @name='oil-credits')]/
+            demand-physical[@unit='EJ']/node()</xPath>
+    <comments/>
+</supplyDemandQuery>
+
+   </aQuery>
+
+   <aQuery>
+     <all-regions/>
+     <ClimateQuery title="Global mean temperature">
+       <axis1 name="temperature">none</axis1>
+       <axis2 name="Year">global-mean-temperature[@year]</axis2>
+       <xPath buildList="true" dataName="global-mean-temperature" group="false" sumAll="false">climate-model/global-mean-temperature/text()</xPath>
+       <comments/>
+     </ClimateQuery>
+     </aQuery>
+
+      
+      <aQuery>
+	<all-regions/>
+         <gdpQueryBuilder title="GDP by region">
+            <axis1 name="region">region</axis1>
+            <axis2 name="Year">gdp-mer</axis2>
+            <xPath buildList="true" dataName="gdp-mer" group="false" sumAll="false">GDP/gdp-mer/text()</xPath>
+            <comments/>
+         </gdpQueryBuilder>
+      </aQuery>
+
+      <aQuery>
+	<all-regions/>
+        <gdpQueryBuilder title="PPP GDP by region">
+          <axis1 name="Region">region</axis1>
+          <axis2 name="Year">gdp-per-capita-ppp</axis2>
+          <xPath buildList="true" dataName="gdp-per-capita-ppp" group="false" sumAll="false">GDP/gdp-per-capita-ppp/text()</xPath>
+          <comments/>
+	</gdpQueryBuilder>
+      </aQuery>
+
+      <aQuery>
+	<all-regions/>
+         <demographicsQuery title="Population by region">
+            <axis1 name="region">region</axis1>
+            <axis2 name="Year">populationMiniCAM</axis2>
+            <xPath buildList="true" dataName="total-population" group="false" sumAll="false">demographics/populationMiniCAM/total-population/node()</xPath>
+            <comments/>
+         </demographicsQuery>
+      </aQuery>
+
+      <aQuery>
+	<all-regions/>
+	<supplyDemandQuery title="Building floorspace">
+          <axis1 name="Building">gcam-consumer[@name]</axis1>
+          <axis2 name="Year">floorspace[@year]</axis2>
+          <xPath buildList="true" dataName="floorspace" group="false" sumAll="false">gcam-consumer//floorspace/node()</xPath>
+          <comments/>
+	</supplyDemandQuery>
+      </aQuery>
+
+      
+      <aQuery>
+	<all-regions/>
+	<query title="Land Allocation">
+          <axis1 name="land-allocation">LandLeaf</axis1>
+          <axis2 name="Year">land-allocation[@year]</axis2>
+          <xPath buildList="true" dataName="land-allocation" group="false" sumAll="false">/LandNode[@name='root' or @type='LandNode' (: collapse :)]//land-allocation/text()</xPath>
+          <comments/>
+	</query>
+	</aQuery>
+      
+</queries>
+   

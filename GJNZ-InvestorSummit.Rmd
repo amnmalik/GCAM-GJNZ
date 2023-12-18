@@ -1,0 +1,40 @@
+---
+title: "GJNZ_investor summit"
+author: "Aman Malik, Nikita Shukla"
+date: "2023-12-18"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Required packages
+```{r}
+library(rgcam)
+#to install rgcam follow instructions:
+#library(devtools)#devtools package should be installed for this to work
+#devtools::install_github("JGCRI/rgcam",build_vignettes = TRUE,force = T)
+```
+
+## Connecting to database and writing database output to a project file
+```{r}
+# only needs to be run once or to add new scenarios to the project file
+path <- 'D:/GCAM_State/output/' # change this path to where database is locally
+conn <- localDBConn(path, 'database_basexdb')
+queryFileInput <- 'queries.xml'
+prj <- addScenario(conn, proj = 'GJNZ.dat', scenario =  'BAU_GJ', queryFile = queryFileInput) # This command runs queries from queryFileInput against the database, extract the results for a scenario called "BAU_GJ", and write the results to a file called "GJNZ.dat". 
+scenarios <- listScenarios(prj)# to check which scenarios have been installed
+queries <- listQueries(prj)# to check all queries
+                   
+```
+
+```{r}
+
+
+
+```
+
