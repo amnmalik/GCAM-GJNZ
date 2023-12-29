@@ -257,8 +257,8 @@
             <rewrite from="trn_shipping_intl" to="Freight"/>
 			<rewrite from="trn_shipping_intl" to="Passenger"/>	
 			<rewrite from="trn_shipping_dom" to="Passenger"/>
-	</labelRewriteList>
-	</level>			
+	</level>	
+	</labelRewriteList>	
 	</supplyDemandQuery>
 	</aQuery>
 
