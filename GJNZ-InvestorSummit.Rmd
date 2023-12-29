@@ -15,6 +15,11 @@ knitr::opts_chunk$set(echo = TRUE)
 # Required packages
 ```{r}
 library(rgcam)
+library(tidyverse)
+library(jgcricolors)
+library(ggsci)
+library(ggthemes)
+library(ggpubr)
 #to install rgcam follow instructions:
 #library(devtools)#devtools package should be installed for this to work
 #devtools::install_github("JGCRI/rgcam",build_vignettes = TRUE,force = T)
@@ -26,7 +31,7 @@ library(rgcam)
 path <- 'D:/GCAM_State/output/' # change this path to where database is locally
 conn <- localDBConn(path, 'database_basexdb')
 queryFileInput <- 'queries.xml'
-prj <- addScenario(conn, proj = 'GJNZ.dat', scenario =  'BAU_GJ', queryFile = queryFileInput) # This command runs queries from queryFileInput against the database, extract the results for a scenario called "BAU_GJ", and write the results to a file called "GJNZ.dat". 
+prj <- addScenario(conn, proj = 'GJNZ.dat', scenario =  c('BAU_GJ','NZ_GJ_40-70'), queryFile = queryFileInput,warn.empty = T,clobber = T) # This command runs queries from queryFileInput against the database, extract the results for two scenario called and write the results to a file called "GJNZ.dat". 
 scenarios <- listScenarios(prj)# to check which scenarios have been installed
 queries <- listQueries(prj)# to check all queries
                    
@@ -34,7 +39,127 @@ queries <- listQueries(prj)# to check all queries
 
 ```{r}
 
+prj <- loadProject('GJNZ.dat')
+
+```
+
+#Emissions
+```{r}
+emi <- getQuery(prj,query = 'CO2 emissions by aggregate sector') %>% 
+      filter(region=="GJ") %>% 
+  group_by(scenario, year) %>% 
+  mutate(percent = value / sum(value), percent = percent * 100) %>% 
+  ungroup()
+
+# Add plots
+ggplot()+
+geom_area(data = emi %>% filter(year>2015),mapping=aes(x = year,y=value*3.67,fill=sector))+
+  facet_wrap(~scenario)+
+  theme_pander(boxes = T,base_size = 14)+
+  scale_fill_aaas()+
+  labs(y="Emissions(MTCO2)",x="")
+  
+a <- ggplot(emi %>% filter(year == 2020,scenario=="BAU_GJ"),mapping = 
+       aes(x = "", y = percent, fill = sector, group = scenario)) +
+  geom_col(color = "white", size = 1) +
+  geom_text(aes(label = paste0(round(percent, 0), "%")),
+            position = position_stack(vjust = 0.5),
+            hjust = 1,  # Adjust hjust for label placement
+            show.legend = FALSE) +
+    theme_void() +
+  scale_fill_wsj() +
+  labs(title = "Emissions in 2020")
+
+
+
+b <- ggplot(emi %>% filter(year == 2050),
+       aes(x = "", y = percent, fill = sector, group = scenario)) +
+  geom_col(color = "white", size = 1) +
+  geom_text(aes(label = paste0(round(percent, 0), "%")),
+            position = position_stack(vjust = 0.5),
+            hjust = 1,  # Adjust hjust for label placement
+            show.legend = FALSE) +
+  facet_wrap(~scenario) +
+  theme_void() +
+  scale_fill_wsj() +
+  labs(title = "Emissions in 2050")
+
+
+library(patchwork)
+a/b + plot_layout(guides = "collect")
 
 
 ```
+
+#Electricity
+```{r}
+elec <- getQuery(prj,"final energy consumption by aggregate sector and fuel") %>% 
+  filter(region=="GJ",input=="electricity")
+
+ggplot()+
+geom_area(elec %>% filter(year>2015),mapping=aes(x=year,y=value*277.78,fill=sector))+
+  facet_wrap(~scenario) +
+  theme_pander(boxes = T,base_size = 14)+
+  scale_fill_aaas()+
+  labs(y="Electricity consumption (Billion Units)",x="")
+  
+
+elec2 <- getQuery(prj,"final energy consumption by sector and fuel") %>% 
+  filter(region=="GJ") %>% 
+  mutate(input=gsub(x = input,pattern="elect_td_res|elect_td_com",replacement="electricity")) %>% 
+  group_by(scenario,input,year) %>% 
+  summarise(value=sum(value)) %>% 
+  ungroup()
+  
+
+ggplot()+
+geom_area(elec2 %>% filter(year>2015),mapping=aes(x=year,y=value*277.78,fill=input,group=input))+
+  facet_wrap(~scenario) +
+  theme_pander(boxes = T,base_size = 14)+
+  scale_fill_cosmic()+
+  labs(y="Electricity consumption (Billion Units)",x="")
+  
+
+```
+
+
+#Final Energy Consumption
+```{r}
+fe <- getQuery(prj,"final energy consumption by sector and fuel") %>% 
+  filter(region=="GJ") %>% 
+  mutate(input=gsub(x = input,pattern="elect_td_res|elect_td_com",replacement="electricity")) %>% 
+  group_by(scenario,input,year) %>% 
+  summarise(value=sum(value)) %>% 
+  ungroup()
+
+ggplot()+
+geom_area(fe %>% filter(year>2015),mapping=aes(x=year,y=value,fill=input))+
+  
+  facet_wrap(~scenario) +
+  theme_pander(boxes = T,base_size = 14)+
+  scale_fill_cosmic()+
+  labs(y="Final Energy Consumption mix (EJ)",x="")
+  
+
+```
+
+#Transport
+```{r}
+trans <- getQuery(prj,query = "transport service output by mode") %>% 
+  filter(region=="GJ") %>% 
+  mutate(mode=mgsub::mgsub(mode,pattern = c("Air Domestic","Air International","Bus","Freight Rail","HSR","LDV_2W","LDV_3W","LDV_4W","Passenger Rail","Ship Domestic","Ship International","Truck","Cycle","Walk"),
+                           replacement = c("Aviation","Aviation","Bus","Freight Rail","Rail","2W","3W","4W","Rail","Shipping","Shipping","Truck","NMT","NMT")))
+
+ggplot()+
+geom_area(trans %>% filter(year>2015),mapping=aes(x=year,y=value,fill=mode))+
+  
+  facet_wrap(~scenario) +
+  theme_pander(boxes = T,base_size = 14)+
+  scale_fill_cosmic()+
+  labs(y="Final Energy Consumption mix (EJ)",x="")
+
+
+```
+
+
 
