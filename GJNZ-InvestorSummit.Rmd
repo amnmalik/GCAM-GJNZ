@@ -238,13 +238,23 @@ ggplot(trans2 %>% filter(year == 2050,),
   labs(title = "Passenger modal share in 2050")
 
 
+trans3 <- getQuery(prj,"transport final energy by fuel") %>% 
+  filter(region=="GJ")
+
+ggplot()+
+geom_area(trans3 %>% filter(year>2015),mapping=aes(x=year,y=value,fill=input,group=interaction(input,scenario)))+
+  
+  facet_wrap(~scenario) +
+  theme_pander(boxes = T,base_size = 14)+
+  scale_fill_aaas()+
+  labs(y="Transport Fe by Fuel (EJ)",x="")
+
+
 ```
 
 # Buildings
 ```{r}
-build <- getQuery(prj,"building final energy by service (Cooking) and fuel") %>% 
-  filter(region=="GJ",sector=="Cooking")
-
+build <- getQuery(prj,"building final energy by service (Cooking) and fuel") %>%   filter(region=="GJ",sector=="Cooking")
 
 ggplot()+
 geom_area(build %>% filter(year>2015),mapping=aes(x=year,y=value,fill=input))+
@@ -262,7 +272,7 @@ geom_area(build2 %>% filter(year>2015),mapping=aes(x=year,y=value,fill=sector))+
   facet_wrap(~scenario) +
   theme_pander(boxes = T,base_size = 14,lp = "bottom")+
   scale_fill_cosmic()+
-  labs(y="Energy Demand by Subsector  (EJ)",x="")
+  labs(y="Energy Demand by Subsector(EJ)",x="")
 
 
 build3 <- getQuery(prj,"building final energy by fuel") %>% filter(region=="GJ")
@@ -272,7 +282,7 @@ geom_area(build3 %>% filter(year>2015),mapping=aes(x=year,y=value,fill=input))+
   facet_wrap(~scenario) +
   theme_pander(boxes = T,base_size = 14,lp = "bottom")+
   scale_fill_cosmic()+
-  labs(y="Energy Demand by Subsector  (EJ)",x="")
+  labs(y="Energy Demand Fuel mix (EJ)",x="")
 
 
 floorspace <- getQuery(prj,"Building floorspace") %>% 
@@ -289,21 +299,26 @@ ggplot(floorspace,mapping=aes(x=year,y=normalized_value,color=building,group = b
     theme_pander(boxes = T,base_size = 14,lp = "bottom")+
   scale_fill_cosmic()
 
-
 ```
 
 
 # Industry
 ```{r}
-industry <- getQuery(prj,"industry final energy by fuel") %>% 
-  filter(region=="GJ")
+industry <- getQuery(prj,"final energy consumption by sector and fuel") %>% 
+  filter(region=="GJ") %>% 
+  filter(!str_detect(sector, "trn|resid|comm")) %>% 
+  group_by(scenario,input,year) %>% 
+  summarise(value=sum(value)) %>% 
+  ungroup()
 
 ggplot()+
 geom_area(industry %>% filter(year>2015),mapping=aes(x=year,y=value,fill=input))+
   facet_wrap(~scenario) +
   theme_pander(boxes = T,base_size = 14,lp = "bottom")+
   scale_fill_cosmic()+
-  labs(y="Agricultural energy demand (EJ)",x="")
+  labs(y="Industry Final energy demand by fuel (EJ)",x="")
+
+
 
 ```
 
