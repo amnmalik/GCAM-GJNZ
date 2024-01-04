@@ -208,18 +208,37 @@ trans <- getQuery(prj,query = "transport service output by mode") %>%
                           replacement = c("Aviation","Aviation","Bus","Rail","2W","3W","4W","Rail","Shipping","Shipping","NMT","NMT"))) %>% 
   mutate(category=if_else(mode%in% c("2W","3W","4W","Aviation","Bus","NMT","Rail"),"Passenger","Freight")) %>% 
   group_by(scenario,year,mode,category) %>% 
-    summarise(value=sum(value))
+    summarise(value=sum(value)) %>% 
+  ungroup() 
 
-#Passenger
+#Passenger and Freight
 ggplot()+
-geom_area(trans %>% filter(year>2015,scenario=="BAU_GJ"),mapping=aes(x=year,y=value/1000,fill=mode,group=interaction(mode,scenario)))+
+geom_area(trans %>% filter(year>2015),mapping=aes(x=year,y=value/1000,fill=mode,group=interaction(mode,scenario)))+
   
-  facet_wrap(~category) +
+  facet_wrap(scenario~category) +
   theme_pander(boxes = T,base_size = 14)+
   scale_fill_ucscgb()+
   labs(y="Energy Demand (billion pass-km)",x="")
 
-  ```
+trans2 <- trans %>%  
+  filter(category=="Passenger") %>% 
+  group_by(year,scenario) %>% 
+  mutate(share=value/sum(value))
+
+ggplot(trans2 %>% filter(year == 2050,),
+       aes(x = "", y = share, fill = mode, group = interaction(mode,scenario))) +
+  geom_col() +
+  # geom_text(aes(label = paste0(round(share, 0), "%")),
+  #           position = position_stack(vjust = 0.5),
+  #           hjust = 1,  # Adjust hjust for label placement
+  #           show.legend = FALSE) +
+  facet_wrap(~scenario) +
+ # theme_void() +
+  scale_fill_aaas() +
+  labs(title = "Passenger modal share in 2050")
+
+
+```
 
 # Buildings
 ```{r}
