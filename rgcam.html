@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Pralit Patel" />
+
+<meta name="date" content="2023-12-29" />
+
+<title>Advanced RGCAM example Usecases</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Advanced RGCAM example Usecases</h1>
+<h4 class="author">Pralit Patel</h4>
+<h4 class="date">2023-12-29</h4>
+
+
+
+<p>RGCAM provides methods that satisfy the typical use case to get GCAM
+data out of an output XML database and into R so that a user can use it.
+It provides a convenient interface for doing so. It provides these tools
+in a modular way so that you can build upon them to extend their
+capabilities to suite your particular needs. In this vignette we start
+with going through basic examples to highlight the features of the
+package. Then slowly move into some use cases that are not directly
+handled by the package but these examples will show simple tweaks to
+cover those cases.</p>
+<div id="basic-examples" class="section level2">
+<h2>Basic examples</h2>
+<p>As we have seen in the package documentation examples the simplest
+way to get data into GCAM is to open a so called connection to a local
+database by specifying the path and name of the database. Then calling
+<code>addScenario</code> to run a Model Interface batch query file:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(rgcam)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>SAMPLE.GCAMDBLOC <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>                             <span class="at">package=</span><span class="st">&quot;rgcam&quot;</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>SAMPLE.QUERIES <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;ModelInterface&quot;</span>, <span class="st">&quot;sample-queries.xml&quot;</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>                              <span class="at">package=</span><span class="st">&quot;rgcam&quot;</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>conn <span class="ot">&lt;-</span> <span class="fu">localDBConn</span>(SAMPLE.GCAMDBLOC, <span class="st">&quot;sample_basexdb&quot;</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>examples.proj <span class="ot">&lt;-</span> <span class="fu">addScenario</span>(conn, <span class="st">&quot;examples.proj&quot;</span>, <span class="st">&quot;Reference-filtered&quot;</span>, SAMPLE.QUERIES)</span></code></pre></div>
+<p>From there you can check the scenarios and queries that have been
+collected and of course get the data:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">listScenarios</span>(examples.proj)</span></code></pre></div>
+<pre><code>## [1] &quot;Reference-filtered&quot;</code></pre>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">listQueries</span>(examples.proj)</span></code></pre></div>
+<pre><code>## [1] &quot;CO2 concentrations&quot;      &quot;Climate forcing&quot;        
+## [3] &quot;Global mean temperature&quot; &quot;GDP by region&quot;          
+## [5] &quot;PPP GDP by region&quot;       &quot;Population by region&quot;   
+## [7] &quot;Building floorspace&quot;     &quot;Land Allocation&quot;</code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">getQuery</span>(examples.proj, <span class="st">&quot;Land Allocation&quot;</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 5,940 x 6
+##    Units     scenario           region `land-allocation`  year value
+##    &lt;chr&gt;     &lt;chr&gt;              &lt;chr&gt;  &lt;chr&gt;             &lt;dbl&gt; &lt;dbl&gt;
+##  1 thous km2 Reference-filtered USA    CornAEZ07          1975  13.4
+##  2 thous km2 Reference-filtered USA    CornAEZ07          1990  16.9
+##  3 thous km2 Reference-filtered USA    CornAEZ07          2005  19.2
+##  4 thous km2 Reference-filtered USA    CornAEZ07          2010  20.6
+##  5 thous km2 Reference-filtered USA    CornAEZ07          2015  20.8
+##  6 thous km2 Reference-filtered USA    CornAEZ07          2020  21.7
+##  7 thous km2 Reference-filtered USA    CornAEZ07          2025  22.5
+##  8 thous km2 Reference-filtered USA    CornAEZ07          2030  23.2
+##  9 thous km2 Reference-filtered USA    CornAEZ07          2035  24.3
+## 10 thous km2 Reference-filtered USA    CornAEZ07          2040  25.5
+## # i 5,930 more rows</code></pre>
+<p>By default <code>addScenario</code> saves the results to disk and can
+be loaded back. Although if putting this in a script that may get run
+over again I would suggest leaving in the call</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Load a previously saved project.</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co"># Note it is perfectly safe to load a project that doesn&#39;t already exist.</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>examples.proj <span class="ot">&lt;-</span> <span class="fu">loadProject</span>(<span class="st">&quot;examples.proj&quot;</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>conn <span class="ot">&lt;-</span> <span class="fu">localDBConn</span>(SAMPLE.GCAMDBLOC, <span class="st">&quot;sample_basexdb&quot;</span>)</span></code></pre></div>
+<pre><code>## Database scenarios:  Reference-filtered</code></pre>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>examples.proj <span class="ot">&lt;-</span> <span class="fu">addScenario</span>(conn, examples.proj, <span class="st">&quot;Reference-filtered&quot;</span>, SAMPLE.QUERIES,</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>                             <span class="at">clobber=</span><span class="cn">FALSE</span>) <span class="co"># Note the default clobber value is false</span></span></code></pre></div>
+<pre><code>## Warning in addScenario(conn, examples.proj, &quot;Reference-filtered&quot;,
+## SAMPLE.QUERIES, : Skipping running query CO2 concentrations since clobber is
+## false and already exists in project.</code></pre>
+<pre><code>## Warning in addScenario(conn, examples.proj, &quot;Reference-filtered&quot;,
+## SAMPLE.QUERIES, : Skipping running query Climate forcing since clobber is false
+## and already exists in project.</code></pre>
+<pre><code>## Warning in addScenario(conn, examples.proj, &quot;Reference-filtered&quot;,
+## SAMPLE.QUERIES, : Skipping running query Global mean temperature since clobber
+## is false and already exists in project.</code></pre>
+<pre><code>## Warning in addScenario(conn, examples.proj, &quot;Reference-filtered&quot;,
+## SAMPLE.QUERIES, : Skipping running query GDP by region since clobber is false
+## and already exists in project.</code></pre>
+<pre><code>## Warning in addScenario(conn, examples.proj, &quot;Reference-filtered&quot;,
+## SAMPLE.QUERIES, : Skipping running query PPP GDP by region since clobber is
+## false and already exists in project.</code></pre>
+<pre><code>## Warning in addScenario(conn, examples.proj, &quot;Reference-filtered&quot;,
+## SAMPLE.QUERIES, : Skipping running query Population by region since clobber is
+## false and already exists in project.</code></pre>
+<pre><code>## Warning in addScenario(conn, examples.proj, &quot;Reference-filtered&quot;,
+## SAMPLE.QUERIES, : Skipping running query Building floorspace since clobber is
+## false and already exists in project.</code></pre>
+<pre><code>## Warning in addScenario(conn, examples.proj, &quot;Reference-filtered&quot;,
+## SAMPLE.QUERIES, : Skipping running query Land Allocation since clobber is false
+## and already exists in project.</code></pre>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="co"># When clobber is FALSE and the project already has the results being queried it will</span></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="co"># skip running the query (a warning will be issued however).  If you added queries to batch</span></span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="co"># query file however then just the new queries will be made and project file updated.</span></span></code></pre></div>
+</div>
+<div id="loading-existing-batch-csv-output" class="section level2">
+<h2>Loading existing batch CSV output</h2>
+<p>If you have already run the model interface and generated batch CSV
+file results that you would like to include in your project you can
+simply add them with:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a>sample_filename <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;ModelInterface&quot;</span>, <span class="st">&quot;sample.csv&quot;</span>,</span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>                              <span class="at">package=</span><span class="st">&quot;rgcam&quot;</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>examples.proj <span class="ot">&lt;-</span> <span class="fu">addMIBatchCSV</span>(sample_filename, examples.proj)</span></code></pre></div>
+</div>
+<div id="adding-miscellaneous-data" class="section level2">
+<h2>Adding miscellaneous data</h2>
+<p>Sometimes you would like to load some data from some other source
+into your project or maybe perform computations and add it as it’s own
+“query” with <code>addQueryTable</code>.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code></pre></div>
+<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 4.1.3</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a>gdp <span class="ot">&lt;-</span> <span class="fu">getQuery</span>(examples.proj, <span class="st">&quot;GDP by region&quot;</span>)</span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a>pop <span class="ot">&lt;-</span> <span class="fu">getQuery</span>(examples.proj, <span class="st">&quot;Population by region&quot;</span>)</span>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a>gdp_percap <span class="ot">&lt;-</span> gdp <span class="sc">%&gt;%</span> <span class="fu">rename</span>(<span class="at">gdp =</span> value) <span class="sc">%&gt;%</span></span>
+<span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a>    <span class="fu">left_join</span>(pop, <span class="at">by=</span><span class="fu">c</span>(<span class="st">&quot;scenario&quot;</span><span class="ot">=</span><span class="st">&quot;scenario&quot;</span>, <span class="st">&quot;region&quot;</span><span class="ot">=</span><span class="st">&quot;region&quot;</span>, <span class="st">&quot;year&quot;</span><span class="ot">=</span><span class="st">&quot;year&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">value=</span>gdp<span class="sc">/</span>value) <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>gdp, <span class="sc">-</span><span class="fu">starts_with</span>(<span class="st">&quot;Units&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Units=</span><span class="st">&quot;Thousand1990US$/person&quot;</span>)</span>
+<span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a>examples.proj <span class="ot">&lt;-</span> <span class="fu">addQueryTable</span>(examples.proj, gdp_percap, <span class="st">&quot;GDP Percapita&quot;</span>)</span>
+<span id="cb26-8"><a href="#cb26-8" tabindex="-1"></a><span class="fu">listQueries</span>(examples.proj)</span></code></pre></div>
+<pre><code>##  [1] &quot;CO2 concentrations&quot;         &quot;Climate forcing&quot;           
+##  [3] &quot;Global mean temperature&quot;    &quot;GDP by region&quot;             
+##  [5] &quot;PPP GDP by region&quot;          &quot;Population by region&quot;      
+##  [7] &quot;Building floorspace&quot;        &quot;Land Allocation&quot;           
+##  [9] &quot;Aggregated Land Allocation&quot; &quot;GDP Percapita&quot;</code></pre>
+</div>
+<div id="running-a-single-query-at-a-time" class="section level2">
+<h2>Running a single query at a time</h2>
+<p>If you just need to run a single query and don’t want to bother
+writing a whole batch file you can use <code>addSingleQuery</code>. You
+do need to provide the full XML syntax as found in the
+<code>Main_queries.xml</code> file.</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a>query_name <span class="ot">&lt;-</span> <span class="st">&quot;Land Use Change Emission&quot;</span></span>
+<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a>luc_query <span class="ot">&lt;-</span> <span class="st">&#39;&lt;query title=&quot;Land Use Change Emission&quot;&gt;</span></span>
+<span id="cb28-3"><a href="#cb28-3" tabindex="-1"></a><span class="st">         &lt;axis1 name=&quot;land-use-change-emission&quot;&gt;LandLeaf&lt;/axis1&gt;</span></span>
+<span id="cb28-4"><a href="#cb28-4" tabindex="-1"></a><span class="st">         &lt;axis2 name=&quot;Year&quot;&gt;land-use-change-emission[@year]&lt;/axis2&gt;</span></span>
+<span id="cb28-5"><a href="#cb28-5" tabindex="-1"></a><span class="st">         &lt;xPath buildList=&quot;true&quot; dataName=&quot;land-use-change-emission&quot; group=&quot;false&quot; sumAll=&quot;true&quot;&gt;/LandNode[@name=</span><span class="sc">\&#39;</span><span class="st">root</span><span class="sc">\&#39;</span><span class="st"> or @type=</span><span class="sc">\&#39;</span><span class="st">LandNode</span><span class="sc">\&#39;</span><span class="st"> (: collapse :)]//land-use-change-emission/text()&lt;/xPath&gt;</span></span>
+<span id="cb28-6"><a href="#cb28-6" tabindex="-1"></a><span class="st">         &lt;comments/&gt;</span></span>
+<span id="cb28-7"><a href="#cb28-7" tabindex="-1"></a><span class="st">      &lt;/query&gt;&#39;</span></span>
+<span id="cb28-8"><a href="#cb28-8" tabindex="-1"></a>examples.proj <span class="ot">&lt;-</span> <span class="fu">addSingleQuery</span>(conn, examples.proj, query_name, luc_query, <span class="fu">c</span>(<span class="st">&quot;Reference-filtered&quot;</span>), <span class="fu">c</span>(<span class="st">&quot;USA&quot;</span>, <span class="st">&quot;Canada&quot;</span>))</span></code></pre></div>
+<p>Although this may be a bit cumbersome. An alternative, if you have
+access to a <code>Main_queries.xml</code> on the machine that is
+processing the queries, approach could be to query for the query.</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a>query_name <span class="ot">&lt;-</span> <span class="st">&quot;Land Use Change Emission&quot;</span></span>
+<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a>luc_query_query <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;doc(&#39;&quot;</span>,</span>
+<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a>                          <span class="fu">system.file</span>(<span class="st">&quot;ModelInterface&quot;</span>, <span class="st">&quot;sample-queries-interactive.xml&quot;</span>,</span>
+<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a>                              <span class="at">package=</span><span class="st">&quot;rgcam&quot;</span>),<span class="st">&quot;&#39;)//*[@title=&#39;&quot;</span>, query_name, <span class="st">&quot;&#39;]&quot;</span>)</span>
+<span id="cb29-5"><a href="#cb29-5" tabindex="-1"></a>luc_query_query</span></code></pre></div>
+<pre><code>## [1] &quot;doc(&#39;C:/Users/Aman/Documents/R/win-library/4.1/rgcam/ModelInterface/sample-queries-interactive.xml&#39;)//*[@title=&#39;Land Use Change Emission&#39;]&quot;</code></pre>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="co"># Note Scenarios can include the date (seperated by the name with a space) if you</span></span>
+<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a><span class="co"># need to be able to distinguish scenarios of the same name.</span></span>
+<span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a><span class="co"># Note an empty list of regions will query all regions</span></span>
+<span id="cb31-4"><a href="#cb31-4" tabindex="-1"></a>examples.proj <span class="ot">&lt;-</span> <span class="fu">addSingleQuery</span>(conn, examples.proj, query_name, luc_query_query,</span>
+<span id="cb31-5"><a href="#cb31-5" tabindex="-1"></a>                                <span class="fu">c</span>(<span class="st">&quot;Reference-filtered 2016-13-12T05:31:05-08:00&quot;</span>), <span class="fu">c</span>(), <span class="at">clobber=</span><span class="cn">TRUE</span>)</span></code></pre></div>
+<p>Alternatively you could use the <code>xml2</code> library to parse a
+query file and query for queries that way. Such an approach might be
+useful if you have a query file locally but are running the queries on a
+remote DB connection.</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a>queries <span class="ot">&lt;-</span> xml2<span class="sc">::</span><span class="fu">read_xml</span>(<span class="fu">system.file</span>(<span class="st">&quot;ModelInterface&quot;</span>, <span class="st">&quot;sample-queries-interactive.xml&quot;</span>,</span>
+<span id="cb32-2"><a href="#cb32-2" tabindex="-1"></a>                              <span class="at">package=</span><span class="st">&quot;rgcam&quot;</span>))</span>
+<span id="cb32-3"><a href="#cb32-3" tabindex="-1"></a>query_name <span class="ot">&lt;-</span> <span class="st">&quot;Land Use Change Emission&quot;</span></span>
+<span id="cb32-4"><a href="#cb32-4" tabindex="-1"></a>luc_query <span class="ot">&lt;-</span> xml2<span class="sc">::</span><span class="fu">xml_find_first</span>(queries, <span class="fu">paste0</span>(<span class="st">&quot;//*[@title=&#39;&quot;</span>, query_name, <span class="st">&quot;&#39;]&quot;</span>))</span>
+<span id="cb32-5"><a href="#cb32-5" tabindex="-1"></a><span class="co"># Note an empty list of scenarios will query the last scenario in the database.</span></span>
+<span id="cb32-6"><a href="#cb32-6" tabindex="-1"></a>examples.proj <span class="ot">&lt;-</span> <span class="fu">addSingleQuery</span>(conn, examples.proj, query_name, luc_query,</span>
+<span id="cb32-7"><a href="#cb32-7" tabindex="-1"></a>                                <span class="fu">c</span>(), <span class="fu">c</span>(), <span class="at">clobber=</span><span class="cn">TRUE</span>)</span></code></pre></div>
+<div id="running-queries-on-a-remote-server" class="section level3">
+<h3>Running queries on a remote server</h3>
+<p>Quite a common situation for GCAM users is they do their production
+runs on a compute cluster such as PIC and would like to do the analysis
+on their local machine. Thus far users have had to run the queries on
+PIC and pull back the CSV batch file results. This can be tedious
+especially if there are a lot of databases or new queries have to be
+made. Alternatively they could copy back the databases to their local
+machine however this too can become prohibitive with a large number of
+output databases. For this use case we add the ability to run queries on
+some remote database server.</p>
+<p>The ability to run the database as a server is functionality provided
+entirely by <a href="http://docs.basex.org/wiki/Main_Page">BaseX</a>.
+The following is a convenient shell script to run a server hosting
+databases in a location given as the first argument. Note when using
+BaseX in client/server mode a user account is necessary, with READ
+access. Again this helper script can help facilitate setting that up as
+well.</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a><span class="co">#!/bin/sh</span></span>
+<span id="cb33-2"><a href="#cb33-2" tabindex="-1"></a></span>
+<span id="cb33-3"><a href="#cb33-3" tabindex="-1"></a><span class="co"># A Java classpath that minimaly includes BaseX.jar, ModelInterface.jar,</span></span>
+<span id="cb33-4"><a href="#cb33-4" tabindex="-1"></a><span class="co"># and BaseX&#39;s supporting libs (required to run the HTTP server)</span></span>
+<span id="cb33-5"><a href="#cb33-5" tabindex="-1"></a><span class="va">CLASSPATH</span><span class="op">=</span>/pic/projects/GCAM/GCAM-libraries/lib/basex-9.0.1/BaseX.jar:/pic/projects/GCAM/rgcam/inst/ModelInterface/ModelInterface.jar:/pic/projects/GCAM/GCAM-libraries/lib/basex-9.0.1/lib/<span class="pp">*</span></span>
+<span id="cb33-6"><a href="#cb33-6" tabindex="-1"></a></span>
+<span id="cb33-7"><a href="#cb33-7" tabindex="-1"></a><span class="cf">if</span> <span class="bu">[</span> <span class="st">&quot;</span><span class="va">$1</span><span class="st">&quot;</span> <span class="ot">=</span> <span class="st">&quot;stop&quot;</span> <span class="bu">]</span> <span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb33-8"><a href="#cb33-8" tabindex="-1"></a>    <span class="co"># The user just wants to stop an already running server</span></span>
+<span id="cb33-9"><a href="#cb33-9" tabindex="-1"></a>    <span class="ex">java</span> <span class="at">-cp</span> <span class="va">$CLASSPATH</span> org.basex.BaseXHTTP stop</span>
+<span id="cb33-10"><a href="#cb33-10" tabindex="-1"></a>    <span class="bu">exit</span> 0</span>
+<span id="cb33-11"><a href="#cb33-11" tabindex="-1"></a><span class="cf">elif</span> <span class="bu">[</span> <span class="va">$#</span> <span class="ot">-ne</span> <span class="st">&quot;1&quot;</span> <span class="bu">]</span> <span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb33-12"><a href="#cb33-12" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;Usage:&quot;</span></span>
+<span id="cb33-13"><a href="#cb33-13" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$0</span><span class="st"> &lt;path to databases&gt;&quot;</span></span>
+<span id="cb33-14"><a href="#cb33-14" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$0</span><span class="st"> stop&quot;</span></span>
+<span id="cb33-15"><a href="#cb33-15" tabindex="-1"></a>    <span class="bu">exit</span> 1</span>
+<span id="cb33-16"><a href="#cb33-16" tabindex="-1"></a><span class="cf">fi</span></span>
+<span id="cb33-17"><a href="#cb33-17" tabindex="-1"></a></span>
+<span id="cb33-18"><a href="#cb33-18" tabindex="-1"></a><span class="va">DBPATH</span><span class="op">=</span><span class="va">$1</span></span>
+<span id="cb33-19"><a href="#cb33-19" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;DB Path: </span><span class="va">$DBPATH</span><span class="st">&quot;</span></span>
+<span id="cb33-20"><a href="#cb33-20" tabindex="-1"></a></span>
+<span id="cb33-21"><a href="#cb33-21" tabindex="-1"></a><span class="co"># Ensure BaseX users have been set up since remote access will require a</span></span>
+<span id="cb33-22"><a href="#cb33-22" tabindex="-1"></a><span class="co"># username and password.  To run Model Interface queries requires READ access.</span></span>
+<span id="cb33-23"><a href="#cb33-23" tabindex="-1"></a><span class="cf">if</span> <span class="bu">[</span> <span class="ot">!</span> <span class="ot">-e</span> <span class="st">&quot;</span><span class="va">${DBPATH}</span><span class="st">/users.xml&quot;</span> <span class="bu">]</span> <span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb33-24"><a href="#cb33-24" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;No users.xml found in </span><span class="va">$DBPATH</span><span class="st">&quot;</span></span>
+<span id="cb33-25"><a href="#cb33-25" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;Enter a user name to create one now (or CTRL-C to copy/create a users.xml manually):&quot;</span></span>
+<span id="cb33-26"><a href="#cb33-26" tabindex="-1"></a>    <span class="bu">read</span> <span class="va">username</span></span>
+<span id="cb33-27"><a href="#cb33-27" tabindex="-1"></a>    <span class="ex">java</span> <span class="at">-cp</span> <span class="va">$CLASSPATH</span> <span class="at">-Dorg.basex.DBPATH</span><span class="op">=</span><span class="va">$DBPATH</span> org.basex.BaseX <span class="at">-c</span><span class="st">&quot;CREATE USER </span><span class="va">$username</span><span class="st">;GRANT READ TO </span><span class="va">$username</span><span class="st">&quot;</span></span>
+<span id="cb33-28"><a href="#cb33-28" tabindex="-1"></a><span class="cf">fi</span></span>
+<span id="cb33-29"><a href="#cb33-29" tabindex="-1"></a></span>
+<span id="cb33-30"><a href="#cb33-30" tabindex="-1"></a><span class="co"># Run the server, note only the DBPATH is overriden here, all other settings are</span></span>
+<span id="cb33-31"><a href="#cb33-31" tabindex="-1"></a><span class="co"># defined in ~/.basex</span></span>
+<span id="cb33-32"><a href="#cb33-32" tabindex="-1"></a><span class="ex">java</span> <span class="at">-cp</span> <span class="va">$CLASSPATH</span> <span class="at">-Dorg.basex.DBPATH</span><span class="op">=</span><span class="va">$DBPATH</span> org.basex.BaseXHTTP</span></code></pre></div>
+<p>Then to run the server they simply need to provide the path to where
+the databases are stored:</p>
+<pre><code>[pralitp@constance03 ~]$ ./basex-server-helper.sh scratch-home/run-irr-const/pbs/output
+DB Path: scratch-home/run-irr-const/pbs/output
+No users.xml found in scratch-home/run-irr-const/pbs/output
+Enter a user name to create one now (or CTRL-C to copy/create a users.xml manually):
+test
+Password: 
+BaseX 8.5 [HTTP Server]
+[main] INFO org.eclipse.jetty.server.Server - jetty-8.1.18.v20150929
+[main] INFO org.eclipse.jetty.webapp.StandardDescriptorProcessor - NO JSP Support for /, did not find org.apache.jasper.servlet.JspServlet
+Server was started (port: 1984).
+[main] INFO org.eclipse.jetty.server.AbstractConnector - Started SelectChannelConnector@0.0.0.0:8984
+HTTP Server was started (port: 8984).
+</code></pre>
+<p>Note, to stop the server a user can again use the helper script
+providing just the command <code>stop</code>:</p>
+<pre><code>[pralitp@constance03 ~]$ ./basex-server-helper.sh stop</code></pre>
+<p>The server uses standard HTTP protocols to communicate using a “REST”
+API. The host and ports are configured using the standard .basex config
+file. NOTE: that many machines including PIC sit behind a firewall and
+will block access to the port 8984. To work around this you can use ssh
+tunneling to forward that particular port.</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1" tabindex="-1"></a><span class="co"># Note you should use the exact PIC login node that is running the server</span></span>
+<span id="cb36-2"><a href="#cb36-2" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-L</span> 8984:localhost:8984 constance03</span>
+<span id="cb36-3"><a href="#cb36-3" tabindex="-1"></a><span class="co"># this will open an ssh connection however you can now make requests to</span></span>
+<span id="cb36-4"><a href="#cb36-4" tabindex="-1"></a><span class="co"># http://localhost:8984 and the request will get forwarded to http://constance03:8984</span></span></code></pre></div>
+<p>Finally you can use the rgcam package to make requests to this
+running server. Note to make requests on a remote server having Java
+installed on your local machine is not actually required.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a><span class="co"># Note this example is not run since it requires a running server to connect to.</span></span>
+<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a>queries <span class="ot">&lt;-</span> xml2<span class="sc">::</span><span class="fu">read_xml</span>(<span class="fu">system.file</span>(<span class="st">&quot;ModelInterface&quot;</span>, <span class="st">&quot;sample-queries-interactive.xml&quot;</span>,</span>
+<span id="cb37-3"><a href="#cb37-3" tabindex="-1"></a>                              <span class="at">package=</span><span class="st">&quot;rgcam&quot;</span>))</span>
+<span id="cb37-4"><a href="#cb37-4" tabindex="-1"></a>query_name <span class="ot">&lt;-</span> <span class="st">&quot;CO2 emissions by region&quot;</span></span>
+<span id="cb37-5"><a href="#cb37-5" tabindex="-1"></a>co2_query <span class="ot">&lt;-</span> xml2<span class="sc">::</span><span class="fu">xml_find_first</span>(queries, <span class="fu">paste0</span>(<span class="st">&quot;//*[@title=&#39;&quot;</span>, query_name, <span class="st">&quot;&#39;]&quot;</span>))</span>
+<span id="cb37-6"><a href="#cb37-6" tabindex="-1"></a><span class="co"># Note the default host and port are localhost:8984, the same as BaseX defaults.</span></span>
+<span id="cb37-7"><a href="#cb37-7" tabindex="-1"></a>remote_conn <span class="ot">&lt;-</span> <span class="fu">remoteDBConn</span>(<span class="st">&quot;database_basexdb&quot;</span>, <span class="st">&quot;test&quot;</span>, <span class="st">&quot;test&quot;</span>)</span>
+<span id="cb37-8"><a href="#cb37-8" tabindex="-1"></a><span class="co"># This &quot;remote&quot; connection object is used as a drop in replacement in any of the</span></span>
+<span id="cb37-9"><a href="#cb37-9" tabindex="-1"></a><span class="co"># add* methods for a &quot;local&quot; connection.</span></span>
+<span id="cb37-10"><a href="#cb37-10" tabindex="-1"></a>examples.proj <span class="ot">&lt;-</span> <span class="fu">addSingleQuery</span>(remote_conn, examples.proj, query_name, co2_query, <span class="fu">c</span>(), <span class="fu">c</span>())</span></code></pre></div>
+</div>
+<div id="decomposing-the-rgcam-tools" class="section level3">
+<h3>Decomposing the rgcam tools</h3>
+<p>Generally using the add* methods provided should be sufficient for
+most user needs but the package also makes available the underlying
+methods that could be useful if a user wants to do something a little
+bit different.</p>
+<p>First <code>runQuery</code> is a S3 generic method that can run a
+single query on either a local or remote database and returns a tibble.
+It follows all of the same conventions as <code>addScenario</code> or
+<code>addSingleQuery</code> since those are just using this method under
+the hood.</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a><span class="fu">runQuery</span>(conn, luc_query_query, <span class="fu">c</span>(), <span class="fu">c</span>(<span class="st">&quot;USA&quot;</span>))</span></code></pre></div>
+<pre><code>## # A tibble: 21,600 x 7
+##    Units  scenario           region `land-use-change-emission`  year    value
+##    &lt;chr&gt;  &lt;chr&gt;              &lt;chr&gt;  &lt;chr&gt;                      &lt;dbl&gt;    &lt;dbl&gt;
+##  1 MtC/yr Reference-filtered USA    CornAEZ07                   1705 -0.00192
+##  2 MtC/yr Reference-filtered USA    CornAEZ07                   1710 -0.00577
+##  3 MtC/yr Reference-filtered USA    CornAEZ07                   1715 -0.00770
+##  4 MtC/yr Reference-filtered USA    CornAEZ07                   1720 -0.00867
+##  5 MtC/yr Reference-filtered USA    CornAEZ07                   1725 -0.00915
+##  6 MtC/yr Reference-filtered USA    CornAEZ07                   1730 -0.00939
+##  7 MtC/yr Reference-filtered USA    CornAEZ07                   1735 -0.00951
+##  8 MtC/yr Reference-filtered USA    CornAEZ07                   1740 -0.00957
+##  9 MtC/yr Reference-filtered USA    CornAEZ07                   1745 -0.00960
+## 10 MtC/yr Reference-filtered USA    CornAEZ07                   1750 -0.00962
+## # i 21,590 more rows
+## # i 1 more variable: rundate &lt;dttm&gt;</code></pre>
+<p>Note that the <code>addScenario</code>, <code>addSingleQuery</code>,
+or <code>addMIBatchCSV</code> each utilize <code>addQueryTable</code> to
+do the work of adding a tibble to the project under the hood. Note that
+<code>addQueryTable</code> will split the given table by scenario (as
+well as split scenario name from date and potentially fix up column
+names) for you.</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" tabindex="-1"></a>co2_conc <span class="ot">&lt;-</span> <span class="fu">getQuery</span>(examples.proj, <span class="st">&quot;CO2 concentrations&quot;</span>, <span class="st">&quot;Reference-filtered&quot;</span>)</span>
+<span id="cb40-2"><a href="#cb40-2" tabindex="-1"></a>co2_conc <span class="ot">&lt;-</span> co2_conc <span class="sc">%&gt;%</span></span>
+<span id="cb40-3"><a href="#cb40-3" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">scenario=</span><span class="st">&quot;Example&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb40-4"><a href="#cb40-4" tabindex="-1"></a>    <span class="fu">bind_rows</span>(co2_conc)</span>
+<span id="cb40-5"><a href="#cb40-5" tabindex="-1"></a><span class="co"># co2_conc now has results from the scenario Reference-filtered and Example</span></span>
+<span id="cb40-6"><a href="#cb40-6" tabindex="-1"></a>examples.proj <span class="ot">&lt;-</span> <span class="fu">addQueryTable</span>(examples.proj, co2_conc, <span class="st">&quot;CO2 concentrations&quot;</span>, <span class="at">clobber=</span><span class="cn">FALSE</span>)</span></code></pre></div>
+<pre><code>## Scenario Example does not exist in this project.  Creating.</code></pre>
+<pre><code>## Warning in addQueryTable(examples.proj, co2_conc, &quot;CO2 concentrations&quot;, :
+## addQueryTable: query CO2 concentrations already exists for scenario
+## Reference-filtered and noclobber is set.</code></pre>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" tabindex="-1"></a><span class="co"># Now get Example in our list of scenarios</span></span>
+<span id="cb43-2"><a href="#cb43-2" tabindex="-1"></a><span class="fu">listScenarios</span>(examples.proj)</span></code></pre></div>
+<pre><code>## [1] &quot;Reference-filtered&quot; &quot;Example&quot;</code></pre>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" tabindex="-1"></a><span class="co"># And the data for Example has been split out from Reference-filtered so that they can get</span></span>
+<span id="cb45-2"><a href="#cb45-2" tabindex="-1"></a><span class="co"># retrieved individually from the project.</span></span>
+<span id="cb45-3"><a href="#cb45-3" tabindex="-1"></a><span class="fu">getQuery</span>(examples.proj, <span class="st">&quot;CO2 concentrations&quot;</span>, <span class="st">&quot;Example&quot;</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 26 x 4
+##    Units scenario  year value
+##    &lt;chr&gt; &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt;
+##  1 PPM   Example   1975    0 
+##  2 PPM   Example   1980  331.
+##  3 PPM   Example   1985  338.
+##  4 PPM   Example   1990  346.
+##  5 PPM   Example   1995  355.
+##  6 PPM   Example   2000  364.
+##  7 PPM   Example   2005  373.
+##  8 PPM   Example   2010  383.
+##  9 PPM   Example   2015  394.
+## 10 PPM   Example   2020  407.
+## # i 16 more rows</code></pre>
+<p>The <code>addScenario</code> method uses the
+<code>parse_batch_query</code> internally to parse a model interface
+batch query into a list of queries and runs each query in sequence.</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" tabindex="-1"></a>batch_queries <span class="ot">&lt;-</span> <span class="fu">parse_batch_query</span>(SAMPLE.QUERIES)</span>
+<span id="cb47-2"><a href="#cb47-2" tabindex="-1"></a><span class="fu">names</span>(batch_queries)</span></code></pre></div>
+<pre><code>## [1] &quot;CO2 concentrations&quot;      &quot;Climate forcing&quot;        
+## [3] &quot;Global mean temperature&quot; &quot;GDP by region&quot;          
+## [5] &quot;PPP GDP by region&quot;       &quot;Population by region&quot;   
+## [7] &quot;Building floorspace&quot;     &quot;Land Allocation&quot;</code></pre>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" tabindex="-1"></a>batch_queries[[<span class="dv">1</span>]]</span></code></pre></div>
+<pre><code>## $regions
+## character(0)
+## 
+## $query
+## [1] &quot;&lt;ClimateQuery title=\&quot;CO2 concentrations\&quot;&gt;\n  &lt;axis1 name=\&quot;CO2-concentration\&quot;&gt;none&lt;/axis1&gt;\n  &lt;axis2 name=\&quot;Year\&quot;&gt;CO2-concentration[@year]&lt;/axis2&gt;\n  &lt;xPath buildList=\&quot;true\&quot; dataName=\&quot;CO2-concentration\&quot; group=\&quot;false\&quot; sumAll=\&quot;false\&quot;&gt;climate-model/CO2-concentration/text()&lt;/xPath&gt;\n  &lt;comments/&gt;\n&lt;/ClimateQuery&gt;&quot;
+## 
+## $title
+## [1] &quot;CO2 concentrations&quot;</code></pre>
+</div>
+<div id="adding-transformations" class="section level3">
+<h3>Adding transformations</h3>
+<p>Each of the add* methods allows a “transformation” which is just a
+function that takes one tibble and returns a “transformed” version of
+that tibble. The transformation must at the very least maintain the
+<code>scenario</code> column.</p>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" tabindex="-1"></a>add_global_sum <span class="ot">&lt;-</span> <span class="cf">function</span>(data) {</span>
+<span id="cb51-2"><a href="#cb51-2" tabindex="-1"></a>    data <span class="sc">%&gt;%</span> <span class="fu">group_by_</span>(<span class="at">.dots=</span><span class="fu">paste0</span>(<span class="st">&#39;`&#39;</span>,<span class="fu">names</span>(data)[<span class="sc">!</span>(<span class="fu">names</span>(data) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;region&quot;</span>, <span class="st">&quot;value&quot;</span>))],<span class="st">&#39;`&#39;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb51-3"><a href="#cb51-3" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">value=</span><span class="fu">sum</span>(value)) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">region=</span><span class="st">&quot;Global&quot;</span>) <span class="sc">%&gt;%</span> <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb51-4"><a href="#cb51-4" tabindex="-1"></a>        <span class="fu">bind_rows</span>(data)</span>
+<span id="cb51-5"><a href="#cb51-5" tabindex="-1"></a>}</span>
+<span id="cb51-6"><a href="#cb51-6" tabindex="-1"></a><span class="co"># When running addScenario or addMIBatchCSV which process many tables at a time the transformations</span></span>
+<span id="cb51-7"><a href="#cb51-7" tabindex="-1"></a><span class="co"># are provides as a list[[&quot;Query Name&quot;]] &lt;- transformation_function</span></span>
+<span id="cb51-8"><a href="#cb51-8" tabindex="-1"></a>transformations <span class="ot">&lt;-</span> <span class="fu">lapply</span>(batch_queries[<span class="sc">!</span>(<span class="fu">names</span>(batch_queries) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;CO2 concentrations&quot;</span>,<span class="st">&quot;Climate forcing&quot;</span>, <span class="st">&quot;Global mean temperature&quot;</span>))], <span class="cf">function</span>(x) {</span>
+<span id="cb51-9"><a href="#cb51-9" tabindex="-1"></a>    add_global_sum</span>
+<span id="cb51-10"><a href="#cb51-10" tabindex="-1"></a>})</span>
+<span id="cb51-11"><a href="#cb51-11" tabindex="-1"></a>examples.proj <span class="ot">&lt;-</span> <span class="fu">addScenario</span>(conn, examples.proj, <span class="fu">c</span>(), SAMPLE.QUERIES, <span class="at">clobber=</span><span class="cn">TRUE</span>, <span class="at">transformations=</span>transformations)</span></code></pre></div>
+<pre><code>## Warning: `group_by_()` was deprecated in dplyr 0.7.0.
+## i Please use `group_by()` instead.
+## i See vignette(&#39;programming&#39;) for more help
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<pre><code>## Warning: `group_by_()` was deprecated in dplyr 0.7.0.
+## i Please use `group_by()` instead.
+## i See vignette(&#39;programming&#39;) for more help
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<pre><code>## Warning: `group_by_()` was deprecated in dplyr 0.7.0.
+## i Please use `group_by()` instead.
+## i See vignette(&#39;programming&#39;) for more help
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<pre><code>## Warning: `group_by_()` was deprecated in dplyr 0.7.0.
+## i Please use `group_by()` instead.
+## i See vignette(&#39;programming&#39;) for more help
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<pre><code>## Warning: `group_by_()` was deprecated in dplyr 0.7.0.
+## i Please use `group_by()` instead.
+## i See vignette(&#39;programming&#39;) for more help
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" tabindex="-1"></a><span class="fu">getQuery</span>(examples.proj, <span class="st">&quot;Population by region&quot;</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 44 x 5
+##    Units scenario           region  year  value
+##    &lt;chr&gt; &lt;chr&gt;              &lt;chr&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+##  1 thous Reference-filtered Global  1975 222133
+##  2 thous Reference-filtered Global  1990 256971
+##  3 thous Reference-filtered Global  2005 300712
+##  4 thous Reference-filtered Global  2010 314242
+##  5 thous Reference-filtered Global  2015 326649
+##  6 thous Reference-filtered Global  2020 339508
+##  7 thous Reference-filtered Global  2025 352372
+##  8 thous Reference-filtered Global  2030 364622
+##  9 thous Reference-filtered Global  2035 376039
+## 10 thous Reference-filtered Global  2040 386598
+## # i 34 more rows</code></pre>
+<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" tabindex="-1"></a><span class="co"># When running addSingleQuery or addQueryTable you simply need to provide the function</span></span>
+<span id="cb59-2"><a href="#cb59-2" tabindex="-1"></a>examples.proj <span class="ot">&lt;-</span> <span class="fu">addSingleQuery</span>(conn, examples.proj, query_name, luc_query, <span class="fu">c</span>(), <span class="fu">c</span>(),</span>
+<span id="cb59-3"><a href="#cb59-3" tabindex="-1"></a>                                <span class="at">clobber=</span><span class="cn">TRUE</span>, <span class="at">transformations=</span>add_global_sum)</span></code></pre></div>
+<pre><code>## Warning: `group_by_()` was deprecated in dplyr 0.7.0.
+## i Please use `group_by()` instead.
+## i See vignette(&#39;programming&#39;) for more help
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" tabindex="-1"></a><span class="fu">getQuery</span>(examples.proj, query_name)</span></code></pre></div>
+<pre><code>## # A tibble: 43,200 x 6
+##    Units  scenario           region `land-use-change-emission`  year    value
+##    &lt;chr&gt;  &lt;chr&gt;              &lt;chr&gt;  &lt;chr&gt;                      &lt;dbl&gt;    &lt;dbl&gt;
+##  1 MtC/yr Reference-filtered Global CornAEZ07                   1705 -0.00192
+##  2 MtC/yr Reference-filtered Global CornAEZ07                   1710 -0.00577
+##  3 MtC/yr Reference-filtered Global CornAEZ07                   1715 -0.00770
+##  4 MtC/yr Reference-filtered Global CornAEZ07                   1720 -0.00867
+##  5 MtC/yr Reference-filtered Global CornAEZ07                   1725 -0.00915
+##  6 MtC/yr Reference-filtered Global CornAEZ07                   1730 -0.00939
+##  7 MtC/yr Reference-filtered Global CornAEZ07                   1735 -0.00951
+##  8 MtC/yr Reference-filtered Global CornAEZ07                   1740 -0.00957
+##  9 MtC/yr Reference-filtered Global CornAEZ07                   1745 -0.00960
+## 10 MtC/yr Reference-filtered Global CornAEZ07                   1750 -0.00962
+## # i 43,190 more rows</code></pre>
+</div>
+<div id="scenarios-in-multiple-databases" class="section level3">
+<h3>Scenarios in multiple databases</h3>
+<p>Unfortunately there is no simple way to query across multiple
+databases so you must provide a mapping and update the connection
+appropriately. When running many GCAM runs in parallel on a cluster such
+as PIC it could be useful to set in the
+<code>configuration.xml</code></p>
+<div class="sourceCode" id="cb63"><pre class="sourceCode xml"><code class="sourceCode xml"><span id="cb63-1"><a href="#cb63-1" tabindex="-1"></a><span class="co">&lt;!-- Note the append-scenario=&quot;1&quot; ensures each db will have a unique name --&gt;</span></span>
+<span id="cb63-2"><a href="#cb63-2" tabindex="-1"></a>&lt;<span class="kw">Value</span><span class="ot"> write-output=</span><span class="st">&quot;1&quot;</span><span class="ot"> append-scenario-name=</span><span class="st">&quot;1&quot;</span><span class="ot"> name=</span><span class="st">&quot;xmldb-location&quot;</span>&gt;../output/db_&lt;/<span class="kw">Value</span>&gt;</span></code></pre></div>
+<p>You could then update the connection for each scenario for
+example:</p>
+<div class="sourceCode" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" tabindex="-1"></a>scenarios <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Ref_C&quot;</span>,  <span class="st">&quot;Ref_U&quot;</span>,  <span class="st">&quot;UCT100_C&quot;</span>,  <span class="st">&quot;UCT100_U&quot;</span>)</span>
+<span id="cb64-2"><a href="#cb64-2" tabindex="-1"></a>proj_list <span class="ot">&lt;-</span> <span class="fu">lapply</span>(scenarios, <span class="cf">function</span>(scenario) {</span>
+<span id="cb64-3"><a href="#cb64-3" tabindex="-1"></a>    conn<span class="sc">$</span>dbFile <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;db_&quot;</span>, scenario)</span>
+<span id="cb64-4"><a href="#cb64-4" tabindex="-1"></a>    <span class="co"># Note we set saveProj=FALSE simply for performance reasons as we will just</span></span>
+<span id="cb64-5"><a href="#cb64-5" tabindex="-1"></a>    <span class="co"># save it at the end.</span></span>
+<span id="cb64-6"><a href="#cb64-6" tabindex="-1"></a>    <span class="co"># We start with examples.proj (clobber is still false by default) so we can</span></span>
+<span id="cb64-7"><a href="#cb64-7" tabindex="-1"></a>    <span class="co"># avoid re-running queries that we already have</span></span>
+<span id="cb64-8"><a href="#cb64-8" tabindex="-1"></a>    <span class="fu">addScenario</span>(conn, examples.proj, scenario, SAMPLE.QUERIES, <span class="at">saveProj=</span><span class="cn">FALSE</span>)</span>
+<span id="cb64-9"><a href="#cb64-9" tabindex="-1"></a>})</span>
+<span id="cb64-10"><a href="#cb64-10" tabindex="-1"></a><span class="co"># We now need to merge each scenario back into a single project.</span></span>
+<span id="cb64-11"><a href="#cb64-11" tabindex="-1"></a><span class="co"># mergeProjects will save the project in the end</span></span>
+<span id="cb64-12"><a href="#cb64-12" tabindex="-1"></a>examples.proj <span class="ot">&lt;-</span> <span class="fu">mergeProjects</span>(examples.proj, proj_list)</span></code></pre></div>
+</div>
+<div id="running-queries-in-parallel" class="section level3">
+<h3>Running queries in parallel</h3>
+<p>Since each query is run in sequence and maybe you have a lot of
+queries+scenarios to run it maybe worth while to run queries in
+parallel. The rgcam package does not provide facilities to handle this
+explicitly however BaseX can handle parallel requests. Thus we can use
+the <code>parallel</code> package to send requests in a
+<code>parLapply</code> instead of a regular <code>lapply</code>. This
+code is not run because it causes a firewall alert to pop up on many
+systems.</p>
+<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" tabindex="-1"></a><span class="fu">library</span>(parallel)</span>
+<span id="cb65-2"><a href="#cb65-2" tabindex="-1"></a><span class="co"># We need to tell the parallel library how many cores we want to use</span></span>
+<span id="cb65-3"><a href="#cb65-3" tabindex="-1"></a><span class="co"># and we also need to explicitly load the rgcam package into it&#39;s</span></span>
+<span id="cb65-4"><a href="#cb65-4" tabindex="-1"></a><span class="co"># environmenmt (since each parallel executation happens in a seperate one)</span></span>
+<span id="cb65-5"><a href="#cb65-5" tabindex="-1"></a>cluster <span class="ot">&lt;-</span> <span class="fu">makeCluster</span>(<span class="fu">detectCores</span>())</span>
+<span id="cb65-6"><a href="#cb65-6" tabindex="-1"></a><span class="fu">clusterEvalQ</span>(cluster, <span class="fu">library</span>(rgcam))</span>
+<span id="cb65-7"><a href="#cb65-7" tabindex="-1"></a>proj_list <span class="ot">&lt;-</span> <span class="fu">parLapply</span>(cluster, batch_queries, <span class="cf">function</span>(query, conn) {</span>
+<span id="cb65-8"><a href="#cb65-8" tabindex="-1"></a>    <span class="co"># We can use an existing project or just a &quot;temp&quot; if we want to just start fresh</span></span>
+<span id="cb65-9"><a href="#cb65-9" tabindex="-1"></a>    <span class="co"># in either case we *have* to use saveProj=FALSE since otherwise it would try to</span></span>
+<span id="cb65-10"><a href="#cb65-10" tabindex="-1"></a>    <span class="co"># write over itself in each parallel execution</span></span>
+<span id="cb65-11"><a href="#cb65-11" tabindex="-1"></a>    <span class="fu">addSingleQuery</span>(conn, <span class="st">&quot;temp&quot;</span>, query<span class="sc">$</span>title, query<span class="sc">$</span>query, <span class="fu">c</span>(), query<span class="sc">$</span>regions, <span class="at">saveProj=</span>F)</span>
+<span id="cb65-12"><a href="#cb65-12" tabindex="-1"></a>}, conn)</span>
+<span id="cb65-13"><a href="#cb65-13" tabindex="-1"></a><span class="co"># We new need to merge each scenario back into a single project.</span></span>
+<span id="cb65-14"><a href="#cb65-14" tabindex="-1"></a><span class="co"># In this case we will clobber to make sure we get the freshly queried data.</span></span>
+<span id="cb65-15"><a href="#cb65-15" tabindex="-1"></a>examples.proj <span class="ot">&lt;-</span> <span class="fu">mergeProjects</span>(examples.proj, proj_list, <span class="at">clobber=</span><span class="cn">TRUE</span>)</span>
+<span id="cb65-16"><a href="#cb65-16" tabindex="-1"></a><span class="co"># We also need to explicitly stop the cluster when we are done using it.</span></span>
+<span id="cb65-17"><a href="#cb65-17" tabindex="-1"></a><span class="fu">stopCluster</span>(cluster)</span></code></pre></div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

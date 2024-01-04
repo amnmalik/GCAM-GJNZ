@@ -254,7 +254,9 @@ geom_area(trans3 %>% filter(year>2015),mapping=aes(x=year,y=value,fill=input,gro
 
 # Buildings
 ```{r}
-build <- getQuery(prj,"building final energy by service (Cooking) and fuel") %>%   filter(region=="GJ",sector=="Cooking")
+build <- getQuery(prj,"building final energy by service (Cooking) and fuel") %>%   filter(region=="GJ",sector=="Cooking") %>% 
+  group_by(scenario,input,year) %>% 
+  summarise(value=sum(value))
 
 ggplot()+
 geom_area(build %>% filter(year>2015),mapping=aes(x=year,y=value,fill=input))+
