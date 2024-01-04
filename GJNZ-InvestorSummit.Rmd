@@ -139,8 +139,6 @@ b <- ggplot(emi %>% filter(year == 2050),
   scale_fill_wsj() +
   labs(title = "Emissions in 2050")
 
-
-library(patchwork)
 a/b + plot_layout(guides = "collect")
 
 
@@ -156,23 +154,25 @@ geom_area(elec %>% filter(year>2015),mapping=aes(x=year,y=value*277.78,fill=sect
   facet_wrap(~scenario) +
   theme_pander(boxes = T,base_size = 14)+
   scale_fill_aaas()+
-  labs(y="Electricity consumption (Billion Units)",x="")
+  labs(y="Electricity consumption (Billion Units)",x="")+
+  ylim(0, 1500)
   
 
-elec2 <- getQuery(prj,"final energy consumption by sector and fuel") %>% 
-  filter(region=="GJ") %>% 
-  mutate(input=gsub(x = input,pattern="elect_td_res|elect_td_com",replacement="electricity")) %>% 
-  group_by(scenario,input,year) %>% 
-  summarise(value=sum(value)) %>% 
-  ungroup()
+elec2 <- getQuery(prj,"elec gen by subsector") %>% 
+  filter(region=="GJ")
+#  mutate(input=gsub(x = input,pattern="elect_td_res|elect_td_com",replacement="electricity")) %>% 
+  # group_by(scenario,input,year) %>% 
+  # summarise(value=sum(value)) %>% 
+  # ungroup()
   
 
 ggplot()+
-geom_area(elec2 %>% filter(year>2015),mapping=aes(x=year,y=value*277.78,fill=input,group=input))+
+geom_area(elec2 %>% filter(year>2015),mapping=aes(x=year,y=value*277.78,fill=subsector))+
   facet_wrap(~scenario) +
   theme_pander(boxes = T,base_size = 14)+
   scale_fill_cosmic()+
-  labs(y="Electricity consumption (Billion Units)",x="")
+  labs(y="Electricity Generation (Billion Units)",x="")+
+  ylim(0, 1500)
   
 
 ```
@@ -202,19 +202,24 @@ geom_area(fe %>% filter(year>2015),mapping=aes(x=year,y=value,fill=input))+
 ```{r}
 trans <- getQuery(prj,query = "transport service output by mode") %>% 
   filter(region=="GJ") %>% 
-  mutate(mode=mgsub::mgsub(mode,pattern = c("Air Domestic","Air International","Bus","Freight Rail","HSR","LDV_2W","LDV_3W","LDV_4W","Passenger Rail","Ship Domestic","Ship International","Truck","Cycle","Walk"),
-                           replacement = c("Aviation","Aviation","Bus","Freight Rail","Rail","2W","3W","4W","Rail","Shipping","Shipping","Truck","NMT","NMT")))
+  filter(!mode %in% c("road","LDV")) %>% 
+  mutate(mode=mgsub::mgsub(mode,
+  pattern = c("Air Domestic","Air International","Bus","HSR","LDV_2W","LDV_3W","LDV_4W","Passenger Rail","Ship Domestic","Ship International","Cycle","Walk"),
+                          replacement = c("Aviation","Aviation","Bus","Rail","2W","3W","4W","Rail","Shipping","Shipping","NMT","NMT"))) %>% 
+  mutate(category=if_else(mode%in% c("2W","3W","4W","Aviation","Bus","NMT","Rail"),"Passenger","Freight")) %>% 
+  group_by(scenario,year,mode,category) %>% 
+    summarise(value=sum(value))
 
+#Passenger
 ggplot()+
-geom_area(trans %>% filter(year>2015),mapping=aes(x=year,y=value,fill=mode))+
+geom_area(trans %>% filter(year>2015,scenario=="BAU_GJ"),mapping=aes(x=year,y=value/1000,fill=mode,group=interaction(mode,scenario)))+
   
-  facet_wrap(~scenario) +
+  facet_wrap(~category) +
   theme_pander(boxes = T,base_size = 14)+
-  scale_fill_cosmic()+
-  labs(y="Final Energy Consumption mix (EJ)",x="")
+  scale_fill_ucscgb()+
+  labs(y="Energy Demand (billion pass-km)",x="")
 
-
-```
+  ```
 
 # Buildings
 ```{r}
