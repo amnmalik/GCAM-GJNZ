@@ -25,7 +25,7 @@
             <rewrite from="Other Industries_enuse" to="Industry"/>
             <rewrite from="Paper and Pulp_enuse" to="Industry"/>
 			<rewrite from="oil refining" to="Industry"/>
-            <rewrite from="cement" to="Industry"/>
+           <!--  <rewrite from="cement" to="Industry"/> -->
             <rewrite from="comm cooking" to="Building"/>
             <rewrite from="comm hvac" to="Building"/>
 			<rewrite from="comm lighting" to="Building"/>
