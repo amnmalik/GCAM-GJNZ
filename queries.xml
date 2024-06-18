@@ -14,18 +14,18 @@
             <rewrite from="electricity" to="Power"/>
             <rewrite from="Agriculture_enuse" to="Industry"/>
             <rewrite from="Chem_Fert_enuse" to="Industry"/>
-			<rewrite from="Chem_Fert_fsuse" to="Industry"/>
+			<rewrite from="Chem_Fert_fsuse" to="IPPU"/>
             <rewrite from="Fisheries_enuse" to="Industry"/>
-			<rewrite from="Other Industries_fsuse" to="Industry"/>
+			<rewrite from="Other Industries_fsuse" to="IPPU"/>
 			<rewrite from="process heat cement" to="Industry"/>
             <rewrite from="Food Processing_enuse" to="Industry"/>
             <rewrite from="Iron and Steel_enuse" to="Industry"/>
-            <rewrite from="Iron and Steel_fsuse" to="Industry"/>
+            <rewrite from="Iron and Steel_fsuse" to="IPPU"/>
             <rewrite from="Non-Ferrous Metals_enuse" to="Industry"/>
             <rewrite from="Other Industries_enuse" to="Industry"/>
             <rewrite from="Paper and Pulp_enuse" to="Industry"/>
-			<rewrite from="oil refining" to="Industry"/>
-			<rewrite from="cement" to="cement"/>
+			<rewrite from="oil refining" to="oil refining"/>
+			<rewrite from="cement" to="IPPU"/>
             <rewrite from="comm cooking" to="Building"/>
             <rewrite from="comm hvac" to="Building"/>
 			<rewrite from="comm lighting" to="Building"/>
@@ -52,7 +52,7 @@
 			<rewrite from="trn_pass_road_LDV_2W" to="Transport"/>
 			<rewrite from="trn_pass_road_LDV_4W" to="Transport"/>
             <rewrite from="trn_shipping_intl" to="Transport"/>
-			<rewrite from="biomass liquids" to="Transport"/>
+			<rewrite from="biomass liquids" to="biomass liquids"/>
         </level>
     </labelRewriteList>
 	</emissionsQueryBuilder>
@@ -538,6 +538,57 @@
             <rewrite from="delivered gas" to="gas"/>
         </level>
     </labelRewriteList>
+</supplyDemandQuery>
+</aQuery>
+
+<aQuery>
+<supplyDemandQuery title="elec gen costs by tech">
+    <axis1 name="technology">technology</axis1>
+    <axis2 name="Year">cost</axis2>
+    <xPath buildList="true" dataName="cost" group="false" sumAll="false">*[@type='sector' and (@name='electricity' or @name='elect_td_bld')]/*[@type='subsector']/
+              *[@type='technology' and not(@name='elect_td_bld')]/cost/text()</xPath>
+    <comments/>
+</supplyDemandQuery>
+</aQuery>	
+
+<aQuery>
+<marketQuery title="CO2 prices">
+    <axis1 name="market">market</axis1>
+    <axis2 name="Year">market</axis2>
+    <xPath buildList="true" dataName="price" group="false" sumAll="false">Marketplace/market[true() and contains(@name,'CO2')]/price/node()</xPath>
+    <comments/>
+</marketQuery>
+</aQuery>
+
+<aQuery>
+<supplyDemandQuery title="fuel prices to buildings">
+    <axis1 name="fuel">sector</axis1>
+    <axis2 name="Year">cost</axis2>
+    <xPath buildList="true" dataName="cost" group="false" sumAll="false">*[@type='sector' and (@name='delivered gas' or @name='traditional biomass' or
+               @name='delivered coal' or @name='delivered biomass' or @name='elect_td_bld' or
+               @name='refined liquids enduse')]/cost/text()</xPath>
+    <comments/>
+</supplyDemandQuery>
+</aQuery>
+
+<aQuery>
+<supplyDemandQuery title="fuel prices to industry">
+    <axis1 name="fuel">sector</axis1>
+    <axis2 name="Year">cost</axis2>
+    <xPath buildList="true" dataName="cost" group="false" sumAll="false">*[@type='sector' and (@name='wholesale gas' or @name='delivered coal' or
+               @name='delivered biomass' or @name='H2 enduse' or @name='elect_td_ind' or
+               @name='refined liquids industrial')]/cost/text()</xPath>
+    <comments/>
+</supplyDemandQuery>
+</aQuery>
+
+<aQuery>
+<supplyDemandQuery title="fuel prices to transport">
+    <axis1 name="fuel">sector</axis1>
+    <axis2 name="Year">cost</axis2>
+    <xPath buildList="true" dataName="cost" group="false" sumAll="false">*[@type='sector' and (@name='delivered gas' or @name='delivered coal' or @name='elect_td_trn'
+               or @name='refined liquids enduse' or @name='H2 enduse')]/cost/text()</xPath>
+    <comments/>
 </supplyDemandQuery>
 </aQuery>
 
