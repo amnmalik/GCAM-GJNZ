@@ -51,7 +51,7 @@ queries <- listQueries(prj)# to check all queries
 ```
 
 ```{r}
-prj <- mergeProjects("data/GJNZ_BAU_old.dat","data/GJNZ_Revised_NZ70.dat")
+prj <- mergeProjects("data/GJNZ_BAU_24June.dat","data/GJNZ_NZ70_24June.dat")
 prj <- dropScenarios(prj,"NZ-Ind-2070_GJ-2050_ROW-2080")
 prj <- dropScenarios(prj,"ElecRail_ElecShwt_NZ70")
 prj <- dropScenarios(prj,"NZ-Ind_GJ-2070_ROW-2080")
@@ -86,7 +86,7 @@ ggplot(socioeco %>% filter(region %in% c("GJ", "TN", "KA", "MH"), category == "P
   labs(y = "Population (Millions)", x = "")
 
 
-ggplot(socioeco %>% filter(region %in% c("GJ", "TN", "KA", "MH"), category == "GDPPC", year > 2005, year < 2075), 
+ggplot(socioeco %>% filter(region %in% c("GJ", "TN", "KA", "MH"), category == "GDPPC", year > 2005, year < 2075,scenario=="Revised_BAU"), 
        mapping = aes(x = year, y = value * 1000*1.98, color = region)) +
   geom_line(data = socioeco %>% filter(region %in% c("GJ", "TN", "KA", "MH"), category == "GDPPC", year > 2005, year <= 2020), 
             aes(x = year, y = value * 1000 * 1.98, color = region), 
@@ -117,10 +117,12 @@ ggplot(socioeco %>% filter(region %in% c("GJ", "TN", "KA", "MH"), category == "G
 
 emi <- getQuery(prj,query = 'CO2 emissions by aggregate sector') %>% 
       filter(region=="GJ",year >2010, year < 2075) %>% 
+    mutate(sector=mgsub::mgsub( sector,pattern = c("biomass liquids","oil refining"),replacement = c("Industry","Industry"))) %>% 
+  group_by(Units,scenario,region,sector,year) %>% 
+  summarise(value=sum(value)) %>% 
   group_by(scenario, year) %>% 
   mutate(percent = value / sum(value), percent = percent * 100) %>% 
-  ungroup() 
-
+  ungroup()
 
 
 # emi2 <- getQuery(prj_powerAfter2025,query = 'CO2 emissions by aggregate sector') %>% 
@@ -162,7 +164,7 @@ ggplot()+
 geom_line(data = emi %>% filter(year>2005),mapping=aes(x = year,y=value*3.67,color=scenario,linetype=sector,group=interaction(sector,scenario)))+
   facet_wrap(~sector,scales = "free")+
   theme_pander(boxes = T,base_size = 14)+
-  scale_fill_aaas()
+  scale_fill_aaas()+
   labs(y="Emissions(MTCO2)",x="")+
    geom_label(data = first_last_years, 
              aes(x = year, y = total_value, label = round(total_value, 0)),
@@ -204,6 +206,27 @@ ggsave("output_plots/emissions_share.png",
 )
 
 ```
+
+# Emission Intensity
+```{r}
+tot_emissions <-  getQuery(prj,query = 'CO2 emissions by aggregate sector') %>% 
+      filter(region=="GJ",year >2000, year < 2075,) %>% 
+  group_by(scenario, year) %>% 
+  mutate(percent = value / sum(value), percent = percent * 100) %>% 
+  ungroup() %>% 
+  group_by(scenario, year) %>%
+  summarize(total_value = sum(value * 3.67)) 
+#%>% 
+ # filter(scenario=="Revised_NZ70")
+
+gdp_gj <- getQuery(prj,"GDP by region") %>% mutate(category="GDP") %>% filter(region=="GJ",year > 2000)                                                             #   scenario=="Revised_NZ70",
+
+
+
+ei <- left_join(tot_emissions,gdp_gj,by=c("year","scenario")) %>% 
+  mutate(ei=total_value/value,year=as.factor(year))
+```
+
 
 # Electricity
 ```{r}
@@ -698,10 +721,10 @@ ggsave("output_plots/building_floorspace.png",
 ```{r}
 industry <- getQuery(prj,"final energy consumption by sector and fuel") %>% 
   filter(region=="GJ") %>% 
-  filter(!str_detect(sector, "trn|resid|comm")) %>% 
+  filter(!str_detect(sector, "trn|resid|comm|fsuse")) %>% 
   group_by(scenario,input,year) %>% 
   summarise(value=sum(value)) %>% 
-  ungroup() %>% mutate(scenario="BAU_GJ") %>% 
+  ungroup() %>% 
   group_by(year) %>% 
    mutate(percent = value / sum(value), percent = percent * 100) %>% 
    ungroup()
@@ -730,8 +753,7 @@ ggsave("output_plots/industry_fuel.png",
   width = 8, height = 6
 )
 
-
-a <- ggplot(industry %>% filter(year == 2020),mapping = 
+a <- ggplot(industry %>% filter(year == 2020,scenario=="Revised_BAU"),mapping = 
        aes(x = "", y = percent, fill = input, group = scenario)) +
   geom_col(color = "white", size = 1) +
   geom_text(data = . %>% filter(percent > 3),
@@ -745,7 +767,7 @@ a <- ggplot(industry %>% filter(year == 2020),mapping =
 
 
 
-b <- ggplot(industry %>% filter(year == 2050),mapping = 
+b <- ggplot(industry %>% filter(year == 2070,scenario=="Revised_BAU"),mapping = 
        aes(x = "", y = percent, fill = input, group = scenario)) +
   geom_col(color = "white", size = 1) +
   geom_text(data = . %>% filter(percent > 3),
