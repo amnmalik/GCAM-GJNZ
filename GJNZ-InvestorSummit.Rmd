@@ -15,6 +15,8 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,message = F,warning = F,cache = T)
+
+theme_set(theme_pubclean(base_size = 14, base_family = "Calibri"))
 ```
 
 
@@ -35,34 +37,41 @@ library(ggrepel) # for geom label repel
 library(jgcricolors)
 ```
 
+# Color Palette CEEW
+```{r}
+my_custom_palette <- c("#009CD8", "#8DB824", "#575756", "#71C9EB","#B4D48C", "#F49A70","#9D9D9C","#C3E5F5","#DDE9BA","#FACAB1","#D5D7DC")
+```
+
+
 
 ```{r eval=FALSE, include=FALSE}
-## Connecting to database and writing database output to a project file
+## Connecting to GCAM database and writing database output to a project file
 
 
 # only needs to be run once or to add new scenarios to the project file
 path <- 'D:/GCAM_State/output/' # change this path to where database is locally
 conn <- localDBConn(path, 'database_basexdb')
 queryFileInput <- 'queries.xml'
-prj <- addScenario(conn, proj = 'GJNZ.dat', scenario =  c('BAU_GJ'), queryFile = queryFileInput,warn.empty = T,clobber = T) # This command runs queries from queryFileInput against the database, extract the results for two scenario called and write the results to a file called "GJNZ.dat". 
+prj <- addScenario(conn, proj = 'GJNZ.dat', scenario =  c('BAU_GJ'), queryFile = queryFileInput,warn.empty = T,clobber = T) # This command runs queries from queryFileInput against the database, extract the results for the said scenarios called and write the results to a file called "GJNZ.dat". 
 scenarios <- listScenarios(prj)# to check which scenarios have been installed
 queries <- listQueries(prj)# to check all queries
                    
 ```
 
 ```{r}
-prj <- mergeProjects("data/GJNZ_BAU_26June.dat","data/GJNZ_NZ70_26June.dat")
+prj <- mergeProjects("data/GJNZ_Reference_report.dat","data/GJNZ_NZ70_report.dat")
 
-prj <- dropScenarios(prj,"Net_Zero")
+#prj <- dropScenarios(prj,"Net_Zero")
 
-queries <- listQueries(prj2)
+queries <- listQueries(prj)
 
 #Renaming scenarios
 
 # Loop through each dataframe in the list
 for (i in seq_along(queries)) {
   # Access the dataframe
-  prj[["NZ70_Trn_prcElas0.25"]][[queries[i]]][["scenario"]] <- "Net_Zero"
+  prj[["V2_Ref_Final_report"]][[queries[i]]][["scenario"]] <- "Reference"
+  prj[["V2_NZ70_Final_report"]][[queries[i]]][["scenario"]] <- "Net_Zero"
   
 }
 
@@ -131,6 +140,14 @@ emi <- getQuery(prj,query = 'CO2 emissions by aggregate sector') %>%
   mutate(percent = value / sum(value), percent = percent * 100) %>% 
   ungroup()
 
+#emi <- writexl::write_xlsx(x = emi,"emi.xlsx")
+#emi <- read_xlsx("emi.xlsx")
+
+emi$scenario <- factor(emi$scenario,levels = c("Reference","Net_Zero"))
+emi_tot <- emi %>% 
+  group_by(scenario,year) %>% 
+  summarise(value=sum(value*3.67))
+
 annotate_data <- emi %>% 
   filter(year > 2005) %>%
   group_by(scenario, year) %>%
@@ -142,14 +159,16 @@ first_last_years <- annotate_data %>%
 ##################################################
 # Total emissions stacked area
 ggplot()+
-geom_area(data = emi %>% filter(year>2005),mapping=aes(x = year,y=value*3.67,fill=sector))+
+geom_area(data = emi %>% filter(year>2015),mapping=aes(x = year,y=value*3.67,fill=sector))+
   facet_wrap(~scenario)+
       theme_pubclean(base_size = 12)+
-    scale_fill_viridis_d()+
+  scale_fill_manual(values = my_custom_palette[2:6])+
+    #scale_fill_viridis_d()+
   labs(y = expression(Emissions~(MTCO[2])),x="")+
-   geom_label(data = first_last_years, 
-             aes(x = year, y = total_value, label = round(total_value, 0)),
-             vjust = -0.2, hjust = 0.5, size = 3, fill = "white", color = "black") 
+  scale_y_continuous(breaks = seq(0, 1200,by=200))
+  # geom_label(data = first_last_years, 
+            # aes(x = year, y = total_value, label = round(total_value, 0)),
+             #vjust = -0.2, hjust = 0.5, size = 3, fill = "white", color = "black") 
 
 
 ggsave("output_plots/emissions.png",
@@ -159,13 +178,13 @@ ggsave("output_plots/emissions.png",
 ##################################
 #Individual emissions facet wrap
 ggplot()+
-geom_line(data = emi %>% filter(year>2015),mapping=aes(x = year,y=value*3.67,color=sector,linetype=scenario,group=interaction(sector,scenario)),size=1)+
+geom_line(data = emi %>% filter(year>2015),mapping=aes(x = year,y=value*3.67,color=sector,linetype=scenario,group=interaction(sector,scenario)),size=1.2)+
   facet_wrap(~sector,scales = "free")+
   scale_x_continuous(breaks = seq(2020, 2070, by = 10))+
   guides(color = guide_legend(nrow = 2),linetype=guide_legend(nrow=2))+
-  theme_pander(boxes = T,base_size = 14,lp = "top")+
-  scale_fill_aaas()+
-  labs(y="Emissions(MTCO2)",x="")+
+  theme_pubclean(base_size = 12)+
+    scale_color_viridis_d()+
+  labs(y=expression(Emissions~(MTCO[2])),x="")+
   theme(axis.text.x = element_text(size = 8, angle = 45, vjust = 0.8, hjust = 0.8))
    # geom_label(data = first_last_years, 
    #           aes(x = year, y = total_value, label = round(total_value, 0)),
@@ -209,8 +228,92 @@ ggsave("output_plots/emissions_share.png",
   device = "png", dpi = "print",
   width = 8, height = 6
 )
-
+#######################
 ```
+
+## Kaya Identity
+```{r}
+```{r}
+# Population
+# GDP per capita
+# CO2 emissions
+# Carbon Intensity
+# Energy Intensity
+# Carbon Intensity
+
+gdp <- getQuery(prj,"GDP by region") %>% mutate(category="GDP") %>% 
+  filter(region=="GJ") %>% select(scenario,year,value) %>% mutate(title="GDP")
+pop <- getQuery(prj,"Population by region") %>% mutate(category="Pop")%>% 
+  filter(region=="GJ") %>% select(scenario,year,value) %>% mutate(title="Population")
+gdpPerCap <- getQuery(prj,"PPP GDP by region") %>% mutate(category="GDPPC")%>% 
+  filter(region=="GJ") %>% select(scenario,year,value) %>% mutate(title="GDP Per capita")
+
+emi_tot <- emi %>% 
+  group_by(scenario,year) %>% 
+  summarise(value=sum(value*3.67)) %>% mutate(title="Emissions")
+
+fe_tot <- fe %>% 
+  select(-percent) %>% 
+  group_by(year,scenario) %>% 
+  summarise(value=sum(value))  mutate(title = "Final Energy (EJ)")%>%
+
+
+carbon_intensity <- left_join(emi_tot, fe_tot, by = c("scenario", "year")) %>%
+  mutate(value = value.x / value.y) %>%
+  mutate(title = "Emissions intensity (CO2/Energy)")%>% 
+  select(year, value, scenario,title)
+
+en_intensity <- left_join(fe_tot, gdp, by = c("scenario", "year")) %>%
+  mutate(title = "Energy intensity (Energy/GDP)") %>%
+  mutate(value = value.x / value.y) %>% 
+  select(year, value, scenario,title)
+
+kaya <- gdpPerCap %>%
+  bind_rows(emi_tot) %>%
+  bind_rows(carbon_intensity) %>%
+  bind_rows(en_intensity) %>%
+  bind_rows(pop) 
+
+
+kaya_ref <- kaya %>% filter(year == "2020")
+
+kaya2 <- left_join(kaya, kaya_ref, by = c("title", "scenario")) %>%
+  mutate(
+    value = value.x / value.y,
+    value = round(value, 2),http://127.0.0.1:46355/graphics/plot_zoom_png?width=1280&height=650
+    title = gsub(x=title, replacement =  "Population", pattern = "population by region"))
+
+
+
+ggplot()+
+  geom_line(kaya2 %>% filter(year.x > 2015, year.x < 2075),mapping = aes(x = year.x, y = value, color = title,linetype=scenario),size=1.5)+
+  facet_wrap(~scenario)+
+  coord_cartesian(ylim = c(0, 10))+
+   theme_pubclean(base_size = 12)+
+    scale_color_viridis_d()
+  
+
+ggplot(kaya2 %>% filter(year.x > 2010, year.x < 2075)) %>% 
+  geom_line(mapping = aes(x = year.x, y = value, color = title, group = title), linewidth = 1.2) 
+geom_vline(xintercept = "2040",linetype=3)+
+  annotate(geom = "text",x = "2030",y=6,label="Year of emissions peak")+
+  geom_curve(
+  aes(x = "2035", y = 5.8, xend = "2040", yend = 5),color="grey",
+    arrow = arrow(length = unit(0.03, "npc")))+
+  geom_point(aes(x=year.x,y=value,color=title),shape="circle",size=2)+
+  theme_pander(boxes = T,base_size = 14)+
+  scale_color_manual(values = mypal[names(mypal) %in% unique(kaya2$title)]) +
+  labs(x = "", y = "Change rel. to 2015") +
+  theme(legend.position = c(0.25, 0.8), legend.title = element_blank(), legend.box.background = element_rect(colour = "black"))+
+   scale_y_continuous(breaks = seq(1, 9, by = 2))+
+  scale_x_discrete(breaks=seq(2020,2070,10))
+
+ggsave("output_plots/kaya.png",
+  device = "png", dpi = "print",
+  width = 7, height = 5
+)
+```
+
 
 # Emission Intensity (MtCo2/GDP)
 ```{r}
@@ -228,6 +331,8 @@ gdp_gj <- getQuery(prj,"GDP by region") %>% mutate(category="GDP") %>% filter(re
 
 ei <- left_join(tot_emissions,gdp_gj,by=c("year","scenario")) %>% 
   mutate(ei=total_value/value,year=as.factor(year))
+
+writexl::write_xlsx(x = ei,"emission_intensity.xlsx")
 ```
 
 # Emission intensity of Energy (MtCo2/EJ)
@@ -294,7 +399,7 @@ ggplot()+
   theme_pander(boxes = T,base_size = 14)+
   scale_fill_aaas()+
   labs(y="Energy intensity of GDP (PJ/2020billion$)",x="")+
-   scale_y_continuous(breaks = seq(0, 10, by = 1))
+   scale_y_continuous(breaks = seq(0, 12, by = 1))
 
 ggsave("output_plots/emission_intensity_of_energy.png",
   device = "png", dpi = "print",
@@ -307,6 +412,8 @@ ggsave("output_plots/emission_intensity_of_energy.png",
 
 
 # Electricity
+
+## Electricity consumption/demand
 ```{r}
 elec <- getQuery(prj,"final energy consumption by aggregate sector and fuel") %>% 
   filter(region=="GJ",input=="electricity") %>% 
@@ -322,6 +429,10 @@ elec <- read_xlsx("elec.xlsx") %>% select(-percent) %>%
   group_by(year,scenario) %>% 
   mutate(percent=value/sum(value),percent=percent*100) %>% 
 ungroup()
+
+elec_tot <- elec %>% 
+  group_by(scenario,year) %>% 
+  summarise(value=sum(value*277.78))
 
 elec$scenario <- factor(elec$scenario, levels = c("Reference", "Net_Zero"))
 
@@ -343,14 +454,13 @@ ggsave("output_plots/elec_demand.png",
 ggplot(elec %>% filter(year %in% c(2020, 2030, 2050, 2070)),mapping=aes(x=as.factor(year),y=percent,fill=sector))+
   geom_bar(stat = "identity")+
   facet_wrap(~scenario) +
-  theme_minimal()+
-  labs(y = "Sectoral share (%)", x = "Year")+
-   scale_fill_viridis_d()+
-  theme_pander() +
+    theme_pubclean(base_size = 12)+
+    scale_fill_viridis_d()+
+  labs(y = "Sectoral share (%)", x = "")+
   geom_text(aes(label = ifelse(percent > 5, paste0(round(percent, 0), "%"), "")), 
             position = position_stack(vjust = 0.5), 
-            size = 3) +
-  coord_cartesian(ylim = c(0, 12))+labs(x="")
+            size = 3) 
+  coord_cartesian(ylim = c(0, 12))
 
 ggsave("output_plots/elec_demand_share.png",
   device = "png", dpi = "print",
@@ -360,6 +470,26 @@ ggsave("output_plots/elec_demand_share.png",
   
 ##################################
 
+alpha_values  <- c("Reference"=0.7, "Net_Zero" = 1)
+
+
+ggplot()+
+  geom_col(elec %>% filter(year>2015) %>% mutate(year=as.factor(year)),mapping=aes(x=year,y=value*277.78,fill=sector,alpha=scenario,group=interaction(year,scenario)))
+  facet_grid(~year)
+       theme_pubclean(base_size = 12)+
+    scale_fill_viridis_d()
+  scale_alpha_manual(values=alpha_values)+
+  labs(y="Electricity consumption (Billion Units)",x="")
+   scale_x_continuous(breaks = seq(2020, 2070, by  = 10))
+   scale_y_continuous(breaks = seq(0, 4500, by = 500))
+ 
+
+```
+
+
+
+## Electricity Generation
+```{r}
 elec_gen <- getQuery(prj,"elec gen by subsector") %>% 
   filter(region=="GJ") %>% 
   group_by(scenario,year) %>% 
@@ -384,10 +514,10 @@ elec_gen_tot <- elec_gen %>%
   group_by(year,scenario) %>% 
   summarise(value=sum(value))
 
-  
+  writexl::write_xlsx(elec_gen %>% filter(year>2015),"elec_gen.xlsx")
 ########################
 ggplot()+
-geom_area(elec_gen %>% filter(year>2010),mapping=aes(x=year,y=value*277.78,fill=subsector))+
+geom_area(elec_gen %>% filter(year>2015),mapping=aes(x=year,y=value*277.78,fill=subsector))+
   facet_wrap(~scenario) +
  theme_pubclean(base_size = 14)+
     scale_fill_viridis_d()+
@@ -427,20 +557,26 @@ ggsave("output_plots/elec_generation_share.png",
   width = 8, height = 6
 )
 
+writexl::write_xlsx(elec_gen_share %>% filter(year>2015,subsector %in% c("coal","gas","solar","wind","RE")),"elec_gen_share.xlsx")
 ##################################
 
+```
+
+
+## Cumulative Capacity and Capacity Addition
+```{r}
 elec_cap <-  read_excel("data/RV-GJNZ Transport analysis.xlsx", 
     sheet = "Sheet1") %>% 
   pivot_longer(2:10,names_to = "subsector",values_to = "value")
 
 elec_cap$scenario <- factor(elec_cap$scenario, levels = c("Reference", "Net_Zero"))
  ################
-
-ggplot()+
+# Capacity Addition
+a <- ggplot()+
   geom_col(elec_cap %>% filter(year!="2015-2020",subsector %in% c("solar PV","coal","wind onshore"),variable=="new"),mapping=aes(y=year,x=value,fill=scenario,group=interaction(subsector,scenario)),position = position_dodge())+
   facet_grid(~subsector,scales = "free")+
   theme_pubclean(base_size = 14,flip = T)+
-    scale_fill_viridis_d(direction = -1)+
+    scale_fill_viridis_d(direction = 1,option = "E")+
   labs(y="",x="Capacity addition (GW)")
 
 ggsave("output_plots/elec_cap_addition.png",
@@ -449,7 +585,8 @@ ggsave("output_plots/elec_cap_addition.png",
 )
 #################################
 #########################
-ggplot()+
+# Cumulative Capacity
+b <- ggplot()+
 geom_col(elec_cap %>% filter(year>2010,variable=="cumulative"),mapping=aes(x=value,y=year,fill=subsector))+
   facet_wrap(~scenario) +
  theme_pubclean(base_size = 14,flip = T)+
@@ -463,13 +600,22 @@ ggsave("output_plots/elec_cum_cap.png",
   width = 8, height = 6
 )
 ##################
+
+
+a/b
+
+ggsave("output_plots/elec_cap_plots_combined.png",
+  device = "png", dpi = "print",
+  width = 8, height = 8
+)
+
 ```
 
 
 # Final Energy Consumption
 ```{r}
 fe <- getQuery(prj,"final energy consumption by sector and fuel") %>% 
-  filter(region=="GJ",sector!="cement") %>% 
+  filter(region=="GJ") %>% 
   mutate(input=gsub(x = input,pattern="elect_td_res|elect_td_com",replacement="electricity")) %>% 
   group_by(scenario,input,year) %>% 
   summarise(value=sum(value)) %>% 
@@ -505,6 +651,9 @@ ggsave("output_plots/final_energy_fuel_mix.png",
   device = "png", dpi = "print",
   width = 8, height = 5
 )
+
+writexl::write_xlsx(fe %>% filter(year %in% c(2020, 2050, 2070)),"fe_shares.xlsx")
+
 ###########################
 ###########################
 ggplot(fe %>% filter(year %in% c(2020, 2050, 2070)),mapping=aes(x=as.factor(year),y=percent,fill=input))+
@@ -523,6 +672,11 @@ ggsave("output_plots/final_energy_fuel_mix_share.png",
   device = "png", dpi = "print",
   width = 8, height = 6
 )
+#########################
+
+ggplot()+
+  geom_line(fe_tot,mapping=aes(x=year,y=value,color=scenario=linetype=scenario))
+
 ###########################
 
 fe3 <- getQuery(prj,"final energy consumption by aggregate sector and fuel") %>% 
@@ -603,6 +757,7 @@ trans_tot <- trans %>%
   group_by(scenario,year,category) %>% 
   summarise(value=sum(value))
 
+writexl::write_xlsx(trans,"transport_demand.xlsx")
 
 my_colors <- RColorBrewer::brewer.pal(11, "Set3")
 names(my_colors) <- unique(trans$mode)
@@ -611,10 +766,8 @@ names(my_colors) <- unique(trans$mode)
 #Passenger and Freight
 a <- ggplot()+
 geom_area(trans %>% filter(year>2015,!mode %in% c("Ship Domestic","Ship International","Aviation"),scenario=="Reference"),mapping=aes(x=year,y=value/1000,fill=mode,group=interaction(mode,scenario)))+
-  
   facet_wrap(~category,scales = "free") +
-theme_pubclean(base_size = 14)+
-    scale_fill_viridis_d()+
+      scale_fill_manual(values = my_custom_palette)+
    theme(axis.text.x = element_text(size = 8, angle = 45, vjust = 0.8, hjust = 0.8))+
   labs(y="Service Demand (billion tonne-km or billion pass-km)",x="")
 
@@ -628,39 +781,28 @@ filter(category=="Passenger",!mode %in% c("Aviation")) %>%
   group_by(year,scenario) %>% 
   mutate(share=value/sum(value),
          share=share*100)
+
+writexl::write_xlsx(trans_share_pass,"t1rans_share_pass.xlsx")
 ##########################
 b <- ggplot(trans_share_pass %>% filter(year %in% c(2020,2050,2070),scenario=="Reference"),mapping = 
        aes(x = "", y = share, fill = mode, group = scenario)) +
   geom_col(size = 1,show.legend = F) +
-  facet_grid(~year)+
+  facet_grid(.~year)+
   geom_text(data = . %>% filter(share > 5),
     aes(label = paste0(round(share, 0), "%")),
             position = position_stack(vjust = 0.7),
             hjust = 0.5,  # Adjust hjust for label placement
               size=3,color="white")+
-   theme_pubclean(base_size = 14)+
-    scale_fill_viridis_d()+
+       scale_fill_manual(values = my_custom_palette)+
   #scale_fill_manual(values = my_colors)+
   labs(y = "Passenger modal share",x="")
 ##########################
 
-# b <- ggplot(trans_share_pass %>% filter(year == 2050),mapping = 
-#        aes(x = "", y = share, fill = mode, group = interaction(scenario,year))) +
-#   geom_col(color = "white", size = 1) +
-#   geom_text(data = . %>% filter(share > 5),
-#     aes(label = paste0(round(share, 0), "%")),
-#             position = position_stack(vjust = 0.9),
-#             hjust = 1,  # Adjust hjust for label placement
-#             show.legend = FALSE) +
-#     theme_void() +
-#   scale_fill_ucscgb()+
-#   labs(title = "Passenger modal share in 2050")
-
-a+b + plot_layout(guides = "collect",widths = c(2,1))+plot_annotation(tag_levels = "a")&theme(legend.position = "top")
+a/b + plot_layout(guides = "collect")+plot_annotation(tag_levels = "a")&theme(legend.position = "top")
 
 ggsave("output_plots/pass_transport_modal_share.png",
   device = "png", dpi = "print",
-  width = 9, height = 6
+  width = 9, height = 10
 )
 
 ############################
@@ -672,14 +814,15 @@ trans_fuel <- getQuery(prj,"transport final energy by fuel") %>%
 
 trans_fuel$scenario <- factor(trans_fuel$scenario, levels = c("Reference", "Net_Zero"))
 
+writexl::write_xlsx(trans_fuel,"trans_fuel.xlsx")
+
 ggplot()+
 geom_area(trans_fuel %>% filter(year>2010,year<2075,input!= "hydrogen"),mapping=aes(x=year,y=value,fill=input,group=interaction(input)))+
   
   facet_wrap(~scenario) +
-   theme_pubclean(base_size = 14)+
-    scale_fill_viridis_d()+
+    scale_fill_manual(values = my_custom_palette)+
   labs(y="Energy demand by fuel (EJ)",x="")+
-  ylim(0,2.5)
+  ylim(0,1.5)
 
 ggsave("output_plots/transport_fuel.png",
   device = "png", dpi = "print",
@@ -733,6 +876,8 @@ build4_tot <- build4 %>%
   group_by(scenario,year) %>% 
   summarise(value=sum(value))
 
+writexl::write_xlsx(build4,"building_service.xlsx")
+
 #######################
 ggplot()+
 geom_area(build4 %>% filter(year>2015,sector!="Heating"),mapping=aes(x=year,y=value,fill=sector))+
@@ -771,6 +916,8 @@ build6 <- getQuery(prj,"building final energy by fuel") %>% filter(region=="GJ")
   mutate(percent=(value/sum(value))*100)
 
 build6$scenario <- factor(build6$scenario, levels = c("Reference", "Net_Zero"))
+
+writexl::write_xlsx(build6,"build_fuels.xlsx")
 
 ################################
 ggplot()+
@@ -843,14 +990,17 @@ industry_tot <- industry %>%
   group_by(scenario,year) %>% 
   summarise(value=sum(value)) 
 
+writexl::write_xlsx(industry,"industry_FE.xlsx")
+
 
 industry$scenario <- factor(industry$scenario, levels = c("Reference", "Net_Zero"))
 
-ggplot()+
-geom_area(industry %>% filter(year>2010),mapping=aes(x=year,y=value,fill=input))+
+########################################
+a <- ggplot()+
+geom_area(industry %>% filter(year>2015),mapping=aes(x=year,y=value,fill=input))+
   facet_wrap(~scenario) +
-  theme_pubclean(base_size = 14)+
-    scale_fill_viridis_d()+
+  scale_fill_manual(values = my_custom_palette)+
+    #scale_fill_viridis_d()+
   labs(y="Industry energy demand by fuel (EJ)",x="")+
  #coord_cartesian(ylim = c(0, 12.5))+
      scale_y_continuous(breaks = seq(0, 12, by = 2))
@@ -861,11 +1011,11 @@ geom_area(industry %>% filter(year>2010),mapping=aes(x=year,y=value,fill=input))
 )
 #####################
 
-ggplot(industry %>% filter(year %in% c(2020, 2050, 2070)),mapping=aes(x=as.factor(year),y=percent,fill=input))+
+b <- ggplot(industry %>% filter(year %in% c(2020, 2050, 2070)),mapping=aes(x=as.factor(year),y=percent,fill=input))+
   geom_bar(stat = "identity")+
   facet_wrap(~scenario) +
-  theme_pubclean(base_size = 14)+
-    scale_fill_viridis_d()+
+ scale_fill_manual(values = my_custom_palette)+
+#    scale_fill_viridis_d()+
   labs(y = "Share of fuels (%)", x = "Year")+
   
 
@@ -880,40 +1030,11 @@ ggsave("output_plots/industry_fuel_share.png",
 )
 
 
+a/b + plot_layout(guides = "collect") + plot_annotation(tag_levels = "a")
 
-a <- ggplot(industry %>% filter(year == 2020),mapping = 
-       aes(x = "", y = percent, fill = input, group = scenario)) +
-  geom_col(color = "white", size = 1) +
-  facet_grid(~scenario)+
-  geom_text(data = . %>% filter(percent > 3),
-    aes(label = paste0(round(percent, 0), "%")),
-            position = position_stack(vjust = 0.5),
-            hjust = 1,  # Adjust hjust for label placement
-            show.legend = FALSE,color="white") +
-    theme_void() +
-  scale_fill_cosmic() +
-  labs(title = "Share in 2020")
-
-
-
-b <- ggplot(industry %>% filter(year == 2070),mapping = 
-       aes(x = "", y = percent, fill = input, group = scenario)) +
-  geom_col(color = "white", size = 1) +
-facet_grid(~scenario)+
-  geom_text(data = . %>% filter(percent > 3),
-    aes(label = paste0(round(percent, 0), "%")),
-            position = position_stack(vjust = 0.5),
-            hjust = 1,  # Adjust hjust for label placement
-            show.legend = FALSE,color="white") +
-    theme_void() +
-  scale_fill_cosmic() +
-  labs(title = "Share in 2070")
-
-a+b + plot_layout(guides = "collect")
-
-ggsave("output_plots/industry_fuel_share.png",
+ggsave("output_plots/industry_fuel_total_and_share.png",
   device = "png", dpi = "print",
-  width = 8, height = 6
+  width = 9, height = 10
 )
 
 
@@ -926,16 +1047,6 @@ industry3 <- getQuery(prj,"final energy consumption by sector and fuel") %>%
   group_by(scenario,sector,year) %>% 
   summarise(value=sum(value)) %>% 
   ungroup()%>% mutate(scenario="BAU_GJ")
-
-
-# industry4 <- getQuery(prj_powerAfter2025,"final energy consumption by sector and fuel") %>% 
-#  filter(region=="GJ",year>2020) %>% 
-#   filter(!str_detect(sector, "trn|resid|comm|_fsuse")) %>% 
-#   group_by(scenario,sector,year) %>% 
-#   summarise(value=sum(value)) %>% 
-#   ungroup()
-# 
-# industry_sector_join <- bind_rows(industry3,industry4)%>% mutate(scenario="BAU_GJ")
 
 ggplot()+
 geom_area(industry3 %>% filter(year>2015),mapping=aes(x=year,y=value,fill=sector))+
@@ -952,16 +1063,6 @@ industry5 <- getQuery(prj,"final energy consumption by sector and fuel") %>%
   group_by(scenario,sector,year) %>% 
   summarise(value=sum(value)) %>% 
   ungroup()
-
-# 
-# industry6 <- getQuery(prj_powerAfter2025,"final energy consumption by sector and fuel") %>% 
-#  filter(region=="GJ",year>2020) %>% 
-#   filter(!str_detect(sector, "trn|resid|comm|_enuse|process heat cement|cement")) %>% 
-#   group_by(scenario,sector,year) %>% 
-#   summarise(value=sum(value)) %>% 
-#   ungroup()
-# 
-# industry_sector_join2 <- bind_rows(industry5,industry6)%>% mutate(scenario="BAU_GJ")
 
 ggplot()+
 geom_area(industry5 %>% filter(year>2010),mapping=aes(x=year,y=value,fill=sector))+
