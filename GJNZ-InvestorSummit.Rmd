@@ -16,7 +16,6 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,message = F,warning = F,cache = T)
 
-theme_set(theme_pubclean(base_size = 14, base_family = "Calibri"))
 ```
 
 
@@ -34,12 +33,19 @@ library(ggrepel) # for geom label repel
 #to install rgcam follow instructions:
 #library(devtools)#devtools package should be installed for this to work
 #devtools::install_github("JGCRI/rgcam",build_vignettes = TRUE,force = T)
-library(jgcricolors)
+library(readxl)
+#library(jgcricolors)
+
+library(extrafont)
+loadfonts(device = "win")
+
 ```
 
-# Color Palette CEEW
+# Color Palette CEEW and font type
 ```{r}
-my_custom_palette <- c("#009CD8", "#8DB824", "#575756", "#71C9EB","#B4D48C", "#F49A70","#9D9D9C","#C3E5F5","#DDE9BA","#FACAB1","#D5D7DC")
+my_custom_palette <- c("#575756", "#9d9d9c","#D5d7dc", "#C3E5F5", "#71c9eb", "#009cd8", "#8db824","#b4d48c")
+
+theme_set(theme_pubclean(base_size = 14, base_family = "Lato"))
 ```
 
 
@@ -161,8 +167,8 @@ first_last_years <- annotate_data %>%
 ggplot()+
 geom_area(data = emi %>% filter(year>2015),mapping=aes(x = year,y=value*3.67,fill=sector))+
   facet_wrap(~scenario)+
-      theme_pubclean(base_size = 12)+
-  scale_fill_manual(values = my_custom_palette[2:6])+
+    #  theme_pubclean(base_size = 12)+
+  scale_fill_manual(values = my_custom_palette)+
     #scale_fill_viridis_d()+
   labs(y = expression(Emissions~(MTCO[2])),x="")+
   scale_y_continuous(breaks = seq(0, 1200,by=200))
@@ -182,8 +188,8 @@ geom_line(data = emi %>% filter(year>2015),mapping=aes(x = year,y=value*3.67,col
   facet_wrap(~sector,scales = "free")+
   scale_x_continuous(breaks = seq(2020, 2070, by = 10))+
   guides(color = guide_legend(nrow = 2),linetype=guide_legend(nrow=2))+
-  theme_pubclean(base_size = 12)+
-    scale_color_viridis_d()+
+  #theme_pubclean(base_size = 12)+
+   scale_color_manual(values = my_custom_palette[2:6])+
   labs(y=expression(Emissions~(MTCO[2])),x="")+
   theme(axis.text.x = element_text(size = 8, angle = 45, vjust = 0.8, hjust = 0.8))
    # geom_label(data = first_last_years, 
@@ -440,8 +446,8 @@ elec$scenario <- factor(elec$scenario, levels = c("Reference", "Net_Zero"))
 ggplot()+
 geom_area(elec %>% filter(year>2015), mapping=aes(x=year, y=value*277.78, fill=sector))+
   facet_wrap(~scenario)+ 
-       theme_pubclean(base_size = 12)+
-    scale_fill_viridis_d()+
+   #    theme_pubclean(base_size = 12)+
+    scale_fill_manual(values = my_custom_palette)+
   labs(y="Electricity consumption (Billion Units)",x="")+
    scale_y_continuous(breaks = seq(0, 4500, by = 500))
   
@@ -632,20 +638,20 @@ fe_tot <- fe %>%
 fe$scenario <- factor(fe$scenario,levels = c("Reference","Net_Zero"))
 
 ##################################
-ggplot()+
-geom_area(fe %>% filter(year>2010,year<2075),mapping=aes(x=year,y=value,fill=input))+
+a <- ggplot()+
+geom_area(fe %>% filter(year>2015,year<2075),mapping=aes(x=year,y=value,fill=input))+
   
   facet_wrap(~scenario) +
-   theme_pubclean(base_size = 14)+
-    scale_fill_viridis_d()+
+  # theme_pubclean(base_size = 14)+
+   scale_fill_manual(values = my_custom_palette)+
   labs(y="Final Energy Consumption mix (EJ)",x="")+
-scale_y_continuous(breaks = seq(0, 20, by = 2))+
-  theme(legend.position = "top", 
-        legend.box = "horizontal",
-        legend.box.just = "center",
-        legend.spacing.x = unit(0.5, 'cm'),
-        legend.title = element_blank()) +
-  guides(fill = guide_legend(nrow = 2))
+ scale_y_continuous(breaks = seq(0, 20, by = 2))
+#   theme(legend.position = "top", 
+#         legend.box = "horizontal",
+#         legend.box.just = "center",
+#         legend.spacing.x = unit(0.5, 'cm'),
+#         legend.title = element_blank()) +
+#   guides(fill = guide_legend(nrow = 2))
   
 ggsave("output_plots/final_energy_fuel_mix.png",
   device = "png", dpi = "print",
@@ -656,13 +662,13 @@ writexl::write_xlsx(fe %>% filter(year %in% c(2020, 2050, 2070)),"fe_shares.xlsx
 
 ###########################
 ###########################
-ggplot(fe %>% filter(year %in% c(2020, 2050, 2070)),mapping=aes(x=as.factor(year),y=percent,fill=input))+
-  geom_bar(stat = "identity")+
+b <- ggplot(fe %>% filter(year %in% c(2020, 2050, 2070)),mapping=aes(x=as.factor(year),y=percent,fill=input))+
+  geom_bar(stat = "identity",show.legend = F)+
   facet_wrap(~scenario) +
-  theme_minimal()+
+ # theme_minimal()+
   labs(y = "Share of fuels (%)", x = "Year")+
-  theme_pubclean(base_size = 14)+
-    scale_fill_viridis_d()+
+  #theme_pubclean(base_size = 14)+
+    scale_fill_manual(values = my_custom_palette)+
   geom_text(aes(label = ifelse(percent > 5, paste0(round(percent, 0), "%"), "")), 
             position = position_stack(vjust = 0.5), 
             size = 3,color="white") +
@@ -672,6 +678,14 @@ ggsave("output_plots/final_energy_fuel_mix_share.png",
   device = "png", dpi = "print",
   width = 8, height = 6
 )
+
+a/b + plot_layout(guides = "collect") + plot_annotation(tag_levels = "a")
+
+ggsave("output_plots/FE_fuel_total_and_share.png",
+  device = "png", dpi = "print",
+  width = 9, height = 10
+)
+
 #########################
 
 ggplot()+
@@ -759,8 +773,8 @@ trans_tot <- trans %>%
 
 writexl::write_xlsx(trans,"transport_demand.xlsx")
 
-my_colors <- RColorBrewer::brewer.pal(11, "Set3")
-names(my_colors) <- unique(trans$mode)
+# my_colors <- RColorBrewer::brewer.pal(11, "Set3")
+# names(my_colors) <- unique(trans$mode)
 
 ##########################
 #Passenger and Freight
