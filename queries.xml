@@ -4,7 +4,7 @@
   <!-- Emissions -->
   <aQuery>
 	<all-regions/>
-	<emissionsQueryBuilder title="CO2 emissions by aggregate sector">
+	<!-- <emissionsQueryBuilder title="CO2 emissions by aggregate sector">
     <axis1 name="sector">sector</axis1>
     <axis2 name="Year">emissions</axis2>
     <xPath buildList="true" dataName="emissions" group="false" sumAll="false">*[@type='sector']//CO2/emissions/node()</xPath>
@@ -55,7 +55,14 @@
 			<rewrite from="biomass liquids" to="biomass liquids"/>
         </level>
     </labelRewriteList>
-	</emissionsQueryBuilder>
+	</emissionsQueryBuilder> -->
+	<emissionsQueryBuilder title="CO2 emissions by tech">
+    <axis1 name="technology">technology</axis1>
+    <axis2 name="Year">emissions</axis2>
+    <xPath buildList="true" dataName="emissions" group="false" sumAll="false">*[@type = 'sector' ]/*[@type='subsector']/*[@type='technology']//
+            CO2/emissions/node()</xPath>
+    <comments/>
+</emissionsQueryBuilder>	
 	</aQuery>
 
 	<aQuery>
