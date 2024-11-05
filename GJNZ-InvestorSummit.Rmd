@@ -922,7 +922,7 @@ ggsave("output_plots/BUILDING_service.png",
 ###################################
 #####################################
 blah <- build4 %>% select(-percent) %>% 
-  filter(year %in% c(2020,2070), scenario=="Reference", sector!%in% c("Heating","Others") %>% 
+  filter(year %in% c(2020,2070), scenario=="Reference",!sector%in% c("Heating","Others")) %>% 
   pivot_wider(names_from = year,values_from = value) %>% 
   mutate(increase=`2070`/`2020`) 
 
