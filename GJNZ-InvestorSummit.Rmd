@@ -61,7 +61,7 @@ theme_set(theme_pubclean(base_size = 16, base_family = "Calibri"))
 # This only needs to be run once or to add new scenarios to the project file
 path <- 'D:/GCAM_State/output/' # change this path to where database is locally
 conn <- localDBConn(path, 'database_basexdb')
-queryFileInput <- 'queries.xml'
+queryFileInput <- 'data/queries.xml'
 prj <- addScenario(conn, proj = 'GJNZ.dat', scenario =  c('BAU_GJ'), queryFile = queryFileInput,warn.empty = T,clobber = T) # This command runs queries from queryFileInput against the database, extracts the results for the metnioned scenarios (BAU_GJ) called and write the results to a file called "GJNZ.dat". 
 scenarios <- listScenarios(prj)# to check which scenarios have been added
 queries <- listQueries(prj)# to check all queries added
