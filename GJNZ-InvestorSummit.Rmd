@@ -1142,3 +1142,56 @@ ggsave("output_plots/agri_demand.png",
 #############################
 ```
 
+# New Scenario
+```{r}
+new_scen <- read_delim("data/new-scen.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE) %>% 
+  pivot_longer(cols = 3:13,names_to = "Year",values_to = "Value") 
+
+z <- ggplot(data = new_scen %>% 
+  filter(Year %in% c(2035,2045,2070)))+
+  geom_col(mapping=aes(x = scenario,y=Value,fill=subsector,group=interaction(scenario,subsector)),position = position_dodge(width = 0.85))+
+ geom_text(mapping=aes(x = scenario,y = Value, fill = subsector, label = ifelse(Value > 1, paste0(Value, "%"), ""),group=interaction(scenario,subsector,Year)), position = position_dodge2(width = 0.85), size = 3, color = "black",vjust = -0.5,hjust=0.4)+
+  facet_grid(~Year)+
+  scale_fill_manual(values = my_custom_palette[3:8])+
+ # theme_pander()+
+  labs(x="",y="Share (in %)")+
+  expand_limits(y=c(0,80))
+  
+ggsave("output_plots/new-ccs-scen.png",
+  device = "png", dpi = "print",
+  width = 6, height = 5
+)
+
+```
+
+## coal gen comparison
+```{r}
+coal_gen <- read_delim("data/coal-gen.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE) %>% 
+  pivot_longer(cols = 2:13,names_to = "Year",values_to = "Value") %>% 
+  mutate(Year=as.numeric(Year))
+
+x <- ggplot(coal_gen)+
+  geom_line(mapping=aes(x=Year,y=Value,color=Scenario,group=interaction(Scenario)),size=1)+
+  scale_x_continuous(breaks = c(2020,2030,2040,2050,2060,2070))+
+  scale_color_manual(values = my_custom_palette[4:5])+
+  labs(x="",y= "Total coal generation (EJ)")
+
+ggsave("output_plots/coal-gen-comp.png",
+  device = "png", dpi = "print",
+  width = 6, height = 4
+)
+
+
+z/x + plot_annotation(tag_levels = 'a')
+ggsave("output_plots/combined-new-scen.png",
+  device = "png", dpi = "print",
+  width = 8, height = 8
+)
+
+
+```
+
