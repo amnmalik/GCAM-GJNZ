@@ -7,3 +7,5 @@ GJNZ-InvestorSummit_cache
 GJNZ-InvestorSummit_files
 output_plots
 data/*.dat
+*.ini
+*.xlsx
