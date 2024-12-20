@@ -1164,7 +1164,7 @@ agri <- getQuery(prj, "Agriculture final energy by service and fuel") %>%
 
 
 
-#writexl::write_xlsx(agri, "output_data/agri.xlsx")
+# writexl::write_xlsx(agri, "output_data/agri.xlsx")
 # making some post model run changes
 agri <- read_excel("output_data/agri.xlsx") %>%
   group_by(scenario, year) %>%
@@ -1177,12 +1177,12 @@ agri_tot <- agri %>%
 
 
 ##########################
-ggplot()+
-geom_area(agri %>% filter(year>2015,scenario=="Reference"),mapping=aes(x=year,y=value,fill=input))+
- # facet_wrap(~scenario) +
- #theme_pubclean(base_size = 14)+
-    scale_fill_manual(values = my_custom_palette)+
-  labs(y="Agricultural energy demand (EJ)",x="")
+ggplot() +
+  geom_area(agri %>% filter(year > 2015, scenario == "Reference"), mapping = aes(x = year, y = value, fill = input)) +
+  # facet_wrap(~scenario) +
+  # theme_pubclean(base_size = 14)+
+  scale_fill_manual(values = my_custom_palette) +
+  labs(y = "Agricultural energy demand (EJ)", x = "")
 
 ggsave("output_plots/agri_demand.png",
   device = "png", dpi = "print",
@@ -1217,17 +1217,18 @@ ggsave("output_plots/new-ccs-scen.png",
 
 ## coal gen comparison
 ```{r}
-coal_gen <- read_delim("data/coal-gen.txt", 
-    delim = "\t", escape_double = FALSE, 
-    trim_ws = TRUE) %>% 
-  pivot_longer(cols = 2:13,names_to = "Year",values_to = "Value") %>% 
-  mutate(Year=as.numeric(Year))
+coal_gen <- read_delim("data/coal-gen.txt",
+  delim = "\t", escape_double = FALSE,
+  trim_ws = TRUE
+) %>%
+  pivot_longer(cols = 2:13, names_to = "Year", values_to = "Value") %>%
+  mutate(Year = as.numeric(Year))
 
-x <- ggplot(coal_gen)+
-  geom_line(mapping=aes(x=Year,y=Value,color=Scenario,group=interaction(Scenario)),size=1)+
-  scale_x_continuous(breaks = c(2020,2030,2040,2050,2060,2070))+
-  scale_color_manual(values = my_custom_palette[4:5])+
-  labs(x="",y= "Total coal generation (EJ)")
+x <- ggplot(coal_gen) +
+  geom_line(mapping = aes(x = Year, y = Value, color = Scenario, group = interaction(Scenario)), size = 1) +
+  scale_x_continuous(breaks = c(2020, 2030, 2040, 2050, 2060, 2070)) +
+  scale_color_manual(values = my_custom_palette[4:5]) +
+  labs(x = "", y = "Total coal generation (EJ)")
 
 ggsave("output_plots/coal-gen-comp.png",
   device = "png", dpi = "print",
@@ -1235,7 +1236,7 @@ ggsave("output_plots/coal-gen-comp.png",
 )
 
 
-z/x + plot_annotation(tag_levels = 'a')
+z / x + plot_annotation(tag_levels = "a")
 ggsave("output_plots/combined-new-scen.png",
   device = "png", dpi = "print",
   width = 8, height = 8
