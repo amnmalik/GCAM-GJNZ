@@ -9,3 +9,4 @@ output_plots
 data/*.dat
 *.ini
 *.xlsx
+*.html
