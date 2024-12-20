@@ -14,11 +14,20 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,message = F,warning = F,cache = T)
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  cache = TRUE,
+  fig.align = 'center',
+  fig.width = 8,      # Increase figure width
+  fig.height = 5,     # Increase figure height
+  out.width = '80%'   # Ensure figures take enough horizontal space
+)
 
 ```
 
-# If any packages are not installed, install them using `install.packages(package-name)`
+If any packages are not installed, install them using `install.packages(package-name)`
 
 ```{r include=FALSE}
 # Required packages
@@ -499,7 +508,7 @@ ggplot(elec %>% filter(year %in% c(2020, 2030, 2050, 2070)),mapping=aes(x=as.fac
   geom_text(aes(label = ifelse(percent > 5, paste0(round(percent, 0), "%"), "")), 
             position = position_stack(vjust = 0.5), 
             size = 3) 
-  coord_cartesian(ylim = c(0, 12))
+
 
 ggsave("output_plots/elec_demand_share.png",
   device = "png", dpi = "print",
