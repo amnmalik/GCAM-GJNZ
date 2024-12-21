@@ -601,9 +601,15 @@ writexl::write_xlsx(elec_gen_share %>% filter(year>2015,subsector %in% c("coal",
 
 ## Cumulative Capacity and Capacity Addition
 ```{r}
-elec_cap <-  read_excel("data/RV-GJNZ Transport analysis.xlsx", 
+elec_cap <-  read_excel("data/Cap_data_based_on3Oct24 file.xlsx", 
     sheet = "Sheet1") %>% 
   pivot_longer(2:10,names_to = "subsector",values_to = "value")
+
+elec_cap_tot <- elec_cap %>% 
+  #filter(variable=="cumulative") %>% 
+  #mutate(year=as.numeric(year)) %>% 
+  group_by(year,scenario,Unit,variable) %>% 
+  summarise(value=sum(value))
 
 elec_cap$scenario <- factor(elec_cap$scenario, levels = c("Reference", "Net_Zero"))
  ################
@@ -786,17 +792,21 @@ ggplot()+
 
 # Transport
 ```{r}
-trans <- getQuery(prj, query = "transport service output by mode") %>%
-  filter(region == "GJ", year > 2010) %>%
-  filter(!mode %in% c("LDV_2W", "LDV_4W", "LDV", "road")) %>%
-  mutate(mode = mgsub::mgsub(mode,
-    pattern = c("Air Domestic", "Air International", "Bus", "HSR", "LDV_3W", "Passenger Rail", "Cycle", "Walk"),
-    replacement = c("Aviation", "Aviation", "Bus", "Rail", "3W", "Rail", "NMT", "NMT")
-  )) %>%
-  mutate(category = if_else(mode %in% c("2W", "3W", "4W", "Aviation", "Bus", "NMT", "Rail"), "Passenger", "Freight")) %>%
-  group_by(scenario, year, mode, category, Units) %>%
-  summarise(value = sum(value)) %>%
-  ungroup()
+trans <- getQuery(prj, query = "transport service output by mode") %>%  
+  filter(region == "GJ", year > 2010) %>%  
+  filter(!mode %in% c("LDV_2W", "LDV_4W", "LDV", "road")) %>%  
+  mutate(mode = mgsub::mgsub(mode,  
+    pattern = c("Air Domestic", "Air International", "Bus", "HSR", "LDV_3W", "Passenger Rail", "Cycle", "Walk"),  
+    replacement = c("Aviation", "Aviation", "Bus", "Rail", "3W", "Rail", "NMT", "NMT")  
+  )) %>%  
+  mutate(category = if_else(mode %in% c("2W", "3W", "4W", "Aviation", "Bus", "NMT", "Rail"), "Passenger", "Freight")) %>%  
+  group_by(scenario, year, mode, category, Units) %>%  
+  summarise(value = sum(value)) %>%  
+  ungroup() %>%   
+  pivot_wider(names_from = mode, values_from = "value") %>%   
+  mutate(Shipping = `Ship Domestic` + `Ship International`) %>% 
+  pivot_longer(5:16,names_to = "mode",values_to = "value") %>% 
+  filter(!is.na(value))
 
 trans_tot <- trans %>%
   group_by(scenario, year, category) %>%
@@ -808,12 +818,11 @@ writexl::write_xlsx(trans, "output_plots/transport_demand.xlsx")
 ##########################
 #Passenger and Freight
 a <- ggplot()+
-geom_area(trans %>% filter(year>2015,!mode %in% c("Ship Domestic","Ship International","Aviation"),scenario=="Reference"),mapping=aes(x=year,y=value/1000,fill=mode,group=interaction(mode,scenario)))+
+geom_area(trans %>% filter(year>2015,!mode %in% c("Ship International","Ship Domestic","Aviation"), scenario=="Reference"),mapping=aes(x=year,y=value/1000,fill=mode,group=interaction(mode,scenario)))+
   facet_wrap(~category,scales = "free") +
       scale_fill_manual(values = my_custom_palette)+
-#   theme(axis.text.x = element_text(size = 12, angle = 45, vjust = 0.8, hjust = 0.8))+
   labs(y="Service Demand (billion tonne-km or billion pass-km)",x="")+
-   guides(fill = guide_legend(nrow = 1))
+   guides(fill = guide_legend(nrow = 2))
 
 
 ggsave("output_plots/transport_pass_freight_mode_demand.png",
