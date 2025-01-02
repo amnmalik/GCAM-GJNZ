@@ -189,7 +189,8 @@ emi <- getQuery(prj, query = "CO2 emissions by tech") %>%
   summarise(value = sum(value)) %>%
   group_by(scenario, year) %>%
   mutate(percent = value / sum(value), percent = percent * 100) %>%
-  ungroup()
+  ungroup() %>% 
+  mutate(Units="MtCO2")
 
 # emi <- getQuery(prj,query = 'CO2 emissions by aggregate sector') %>%
 #       filter(region=="GJ",year >2010, year < 2075) %>%
@@ -200,12 +201,16 @@ emi <- getQuery(prj, query = "CO2 emissions by tech") %>%
 #   mutate(percent = value / sum(value), percent = percent * 100) %>%
 #   ungroup()
 
-writexl::write_xlsx(x = emi, "output_data/AggregateEmissions.xlsx")
+writexl::write_xlsx(x = emi,"output_data/AggEmissions.xlsx")
+
 
 emi$scenario <- factor(emi$scenario, levels = c("Reference", "Net_Zero"))
+
 emi_tot <- emi %>%
   group_by(scenario, year) %>%
   summarise(value = sum(value * 3.67))
+
+writexl::write_xlsx(x = emi_tot,"output_data/AggregateEmissions.xlsx")
 
 annotate_data <- emi %>%
   filter(year > 2005) %>%
@@ -240,9 +245,7 @@ ggplot() +
   scale_color_manual(values = my_custom_palette[2:6]) +
   labs(y = expression(Emissions ~ (MTCO[2])), x = "") +
   theme(axis.text.x = element_text(size = 10, angle = 45, vjust = 0.8, hjust = 0.8))
-# geom_label(data = first_last_years,
-#           aes(x = year, y = total_value, label = round(total_value, 0)),
-#           vjust = -0.2, hjust = 0.5, size = 3, fill = "white", color = "black")
+
 
 ggsave("output_plots/sector_emissions.png",
   device = "png", dpi = "print",
@@ -466,8 +469,8 @@ ggsave("output_plots/emission_intensity_of_energy.png",
 ## Electricity consumption/demand
 ```{r}
 elec <- getQuery(prj,"final energy consumption by aggregate sector and fuel") %>% 
-  filter(region=="GJ",input=="electricity") %>% 
-  group_by(scenario,sector,year) %>% 
+  filter(region=="GJ",input=="electricity",year>2015) %>% 
+  group_by(scenario,sector,year,Units) %>% 
     summarise(value=sum(value)) %>% 
   group_by(year,scenario) %>% 
   mutate(percent=value/sum(value),percent=percent*100)
@@ -485,6 +488,8 @@ elec_tot <- elec %>%
   summarise(value=sum(value*277.78))
 
 elec$scenario <- factor(elec$scenario, levels = c("Reference", "Net_Zero"))
+
+writexl::write_xlsx(elec,"output_data/elec_demand.xlsx")
 
 #########################################
 ggplot()+
@@ -557,6 +562,7 @@ elec_gen_tot <- elec_gen %>%
   summarise(value = sum(value) * 277.78)
 
 writexl::write_xlsx(elec_gen %>% filter(year > 2015), "output_data/elec_gen.xlsx")
+
 ########################
 ggplot() +
   geom_area(elec_gen %>% filter(year > 2015), mapping = aes(x = year, y = value * 277.78, fill = subsector)) +
@@ -593,7 +599,7 @@ ggsave("output_plots/elec_generation_share.png",
   width = 8, height = 6
 )
 
-writexl::write_xlsx(elec_gen_share %>% filter(year>2015,subsector %in% c("coal","gas","solar","wind","RE")),"elec_gen_share.xlsx")
+writexl::write_xlsx(elec_gen_share %>% filter(year>2015,subsector %in% c("coal","gas","solar","wind","RE","nuclear")),"elec_gen_share.xlsx")
 ##################################
 
 ```
@@ -612,6 +618,10 @@ elec_cap_tot <- elec_cap %>%
   summarise(value=sum(value))
 
 elec_cap$scenario <- factor(elec_cap$scenario, levels = c("Reference", "Net_Zero"))
+
+
+writexl::write_xlsx(elec_cap,path = "output_data/elec_cap.xlsx")
+
  ################
 # Capacity Addition
 a <- ggplot()+
@@ -661,7 +671,7 @@ ggsave("output_plots/elec_cap_plots_combined.png",
 fe <- getQuery(prj,"final energy consumption by sector and fuel") %>% 
   filter(region=="GJ",year>2010) %>% 
   mutate(input=gsub(x = input,pattern="elect_td_res|elect_td_com",replacement="electricity")) %>% 
-  group_by(scenario,input,year) %>% 
+  group_by(scenario,input,year,Units) %>% 
   summarise(value=sum(value)) %>% 
   ungroup() %>% 
  # mutate(scenario="BAU_GJ") %>% 
@@ -696,7 +706,7 @@ ggsave("output_plots/final_energy_fuel_mix.png",
   width = 8, height = 6
 )
 
-writexl::write_xlsx(fe %>% filter(year %in% c(2020, 2050, 2070)),"fe_shares.xlsx")
+writexl::write_xlsx(fe %>% filter(year %in% c(2020, 2050, 2070)),"output_data/fe_absolute_shares.xlsx")
 
 ###########################
 ###########################
@@ -812,7 +822,7 @@ trans_tot <- trans %>%
   group_by(scenario, year, category) %>%
   summarise(value = sum(value))
 
-writexl::write_xlsx(trans, "output_plots/transport_demand.xlsx")
+writexl::write_xlsx(trans %>% filter(!mode %in% c("Ship International","Ship Domestic","Aviation")), "output_data/transport_demand.xlsx")
 
 
 ##########################
@@ -1192,6 +1202,8 @@ agri_tot <- agri %>%
   group_by(scenario, year) %>%
   summarise(value = sum(value)) %>%
   filter(year > 2015)
+
+
 
 
 ##########################
