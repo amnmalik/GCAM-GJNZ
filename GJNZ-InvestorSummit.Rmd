@@ -201,7 +201,7 @@ emi <- getQuery(prj, query = "CO2 emissions by tech") %>%
 #   mutate(percent = value / sum(value), percent = percent * 100) %>%
 #   ungroup()
 
-writexl::write_xlsx(x = emi,"output_data/AggEmissions.xlsx")
+writexl::write_xlsx(x = emi,"output_data/disAggEmissions.xlsx")
 
 
 emi$scenario <- factor(emi$scenario, levels = c("Reference", "Net_Zero"))
@@ -210,7 +210,7 @@ emi_tot <- emi %>%
   group_by(scenario, year) %>%
   summarise(value = sum(value * 3.67))
 
-writexl::write_xlsx(x = emi_tot,"output_data/AggregateEmissions.xlsx")
+writexl::write_xlsx(x = emi_tot,"output_data/AggEmissions.xlsx")
 
 annotate_data <- emi %>%
   filter(year > 2005) %>%
@@ -1228,6 +1228,9 @@ new_scen <- read_delim("data/new-scen.txt",
     trim_ws = TRUE) %>% 
   pivot_longer(cols = 3:13,names_to = "Year",values_to = "Value") 
 
+
+writexl::write_xlsx(new_scen,"output_data/ccs_scenario.xlsx")
+
 z <- ggplot(data = new_scen %>% 
   filter(Year %in% c(2035,2045,2070)))+
   geom_col(mapping=aes(x = scenario,y=Value,fill=subsector,group=interaction(scenario,subsector)),position = position_dodge(width = 0.85))+
@@ -1253,6 +1256,8 @@ coal_gen <- read_delim("data/coal-gen.txt",
 ) %>%
   pivot_longer(cols = 2:13, names_to = "Year", values_to = "Value") %>%
   mutate(Year = as.numeric(Year))
+
+writexl::write_xlsx(coal_gen,path = "output_data/coal_gen_inCCSscen.xlsx")
 
 x <- ggplot(coal_gen) +
   geom_line(mapping = aes(x = Year, y = Value, color = Scenario, group = interaction(Scenario)), size = 1) +
