@@ -535,7 +535,7 @@ ggsave("output_plots/elec_generation_share.png",
   width = 8, height = 6
 )
 
-writexl::write_xlsx(elec_gen_share %>% filter(year > 2015, subsector %in% c("coal", "gas", "solar", "wind", "RE", "nuclear")), "elec_gen_share.xlsx")
+writexl::write_xlsx(elec_gen_share %>% filter(year > 2015, subsector %in% c("coal", "gas", "solar", "wind", "RE", "nuclear")), "output_data/elec_gen_share.xlsx")
 ##################################
 ```
 
