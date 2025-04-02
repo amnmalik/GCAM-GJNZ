@@ -1847,16 +1847,8 @@ ggsave(&quot;output_plots/kaya.png&quot;,
 )</code></pre>
 </div>
 </div>
-<div id="emission-intensity-mtco2gdp" class="section level1" number="4">
-<h1><span class="header-section-number">4</span> Emission Intensity
-(MtCo2/GDP)</h1>
-</div>
-<div id="emission-intensity-of-energy-mtco2ej" class="section level1" number="5">
-<h1><span class="header-section-number">5</span> Emission intensity of
-Energy (MtCo2/EJ)</h1>
-</div>
-<div id="energy-intensity-of-gdp" class="section level1" number="6">
-<h1><span class="header-section-number">6</span> Energy intensity of
+<div id="energy-intensity-of-gdp" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> Energy intensity of
 GDP</h1>
 <pre class="r"><code>gdp_gj &lt;- getQuery(prj,&quot;GDP by region&quot;) %&gt;% mutate(category=&quot;GDP&quot;) %&gt;% filter(region==&quot;GJ&quot;,year &gt; 2010)      %&gt;% 
   select(year,scenario,value) %&gt;% 
@@ -1888,10 +1880,10 @@ ggplot()+
 )
 ####################</code></pre>
 </div>
-<div id="electricity" class="section level1" number="7">
-<h1><span class="header-section-number">7</span> Electricity</h1>
-<div id="electricity-consumptiondemand" class="section level2" number="7.1">
-<h2><span class="header-section-number">7.1</span> Electricity
+<div id="electricity" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> Electricity</h1>
+<div id="electricity-consumptiondemand" class="section level2" number="5.1">
+<h2><span class="header-section-number">5.1</span> Electricity
 consumption/demand</h2>
 <pre class="r"><code>elec &lt;- getQuery(prj,&quot;final energy consumption by aggregate sector and fuel&quot;) %&gt;% 
   filter(region==&quot;GJ&quot;,input==&quot;electricity&quot;,year&gt;2015) %&gt;% 
@@ -1947,8 +1939,8 @@ ggplot(elec %&gt;% filter(year %in% c(2020, 2030, 2050, 2070)),mapping=aes(x=as.
   
 ##################################</code></pre>
 </div>
-<div id="electricity-generation" class="section level2" number="7.2">
-<h2><span class="header-section-number">7.2</span> Electricity
+<div id="electricity-generation" class="section level2" number="5.2">
+<h2><span class="header-section-number">5.2</span> Electricity
 Generation</h2>
 <pre class="r"><code>elec_gen &lt;- getQuery(prj, &quot;elec gen by subsector&quot;) %&gt;%
   filter(region == &quot;GJ&quot;, year &gt; 2010)
@@ -2022,8 +2014,8 @@ ggplot() +
 writexl::write_xlsx(elec_gen_share %&gt;% filter(year&gt;2015,subsector %in% c(&quot;coal&quot;,&quot;gas&quot;,&quot;solar&quot;,&quot;wind&quot;,&quot;RE&quot;,&quot;nuclear&quot;)),&quot;elec_gen_share.xlsx&quot;)
 ##################################</code></pre>
 </div>
-<div id="cumulative-capacity-and-capacity-addition" class="section level2" number="7.3">
-<h2><span class="header-section-number">7.3</span> Cumulative Capacity
+<div id="cumulative-capacity-and-capacity-addition" class="section level2" number="5.3">
+<h2><span class="header-section-number">5.3</span> Cumulative Capacity
 and Capacity Addition</h2>
 <pre class="r"><code>elec_cap &lt;-  read_excel(&quot;data/Cap_data_based_on3Oct24 file.xlsx&quot;, 
     sheet = &quot;Sheet1&quot;) %&gt;% 
@@ -2082,8 +2074,8 @@ b/a</code></pre>
 )</code></pre>
 </div>
 </div>
-<div id="final-energy-consumption" class="section level1" number="8">
-<h1><span class="header-section-number">8</span> Final Energy
+<div id="final-energy-consumption" class="section level1" number="6">
+<h1><span class="header-section-number">6</span> Final Energy
 Consumption</h1>
 <pre class="r"><code>fe &lt;- getQuery(prj,&quot;final energy consumption by sector and fuel&quot;) %&gt;% 
   filter(region==&quot;GJ&quot;,year&gt;2010) %&gt;% 
@@ -2216,8 +2208,8 @@ ggplot()+
 )
 #################################### </code></pre>
 </div>
-<div id="transport" class="section level1" number="9">
-<h1><span class="header-section-number">9</span> Transport</h1>
+<div id="transport" class="section level1" number="7">
+<h1><span class="header-section-number">7</span> Transport</h1>
 <pre class="r"><code>trans &lt;- getQuery(prj, query = &quot;transport service output by mode&quot;) %&gt;%  
   filter(region == &quot;GJ&quot;, year &gt; 2010) %&gt;%  
   filter(!mode %in% c(&quot;LDV_2W&quot;, &quot;LDV_4W&quot;, &quot;LDV&quot;, &quot;road&quot;)) %&gt;%  
@@ -2325,8 +2317,8 @@ trn_mode_fuel_share &lt;- trn_mode_fuel %&gt;%
   group_by(scenario,year,mode) %&gt;%
   mutate(percentage=(value/sum(value))*100)</code></pre>
 </div>
-<div id="buildings" class="section level1" number="10">
-<h1><span class="header-section-number">10</span> Buildings</h1>
+<div id="buildings" class="section level1" number="8">
+<h1><span class="header-section-number">8</span> Buildings</h1>
 <pre class="r"><code>build &lt;- getQuery(prj,&quot;building final energy by service (Cooking) and fuel&quot;) %&gt;%  filter(region==&quot;GJ&quot;,sector==&quot;Cooking&quot;,year&gt;2010) %&gt;% 
   group_by(scenario,input,year) %&gt;% 
   summarise(value=sum(value))
@@ -2484,8 +2476,8 @@ ggplot(floorspace %&gt;% filter(year&gt;2015,year&lt;2075),mapping=aes(x=year,y=
   width = 8, height = 6
 )</code></pre>
 </div>
-<div id="industry" class="section level1" number="11">
-<h1><span class="header-section-number">11</span> Industry</h1>
+<div id="industry" class="section level1" number="9">
+<h1><span class="header-section-number">9</span> Industry</h1>
 <pre class="r"><code>industry &lt;- getQuery(prj, &quot;final energy consumption by sector and fuel&quot;) %&gt;%
   filter(region == &quot;GJ&quot;,year&gt;2010) %&gt;%
   filter(!str_detect(sector, &quot;trn|resid|comm|fsuse&quot;)) %&gt;%
@@ -2624,8 +2616,8 @@ ggsave(&quot;output_plots/industry_FE_by_subsector_nonenergyuse.png&quot;,
  
  writexl::write_xlsx(industry5, &quot;output_data/industry_FE_by_subsector_nonenergy.xlsx&quot;)</code></pre>
 </div>
-<div id="agriculture" class="section level1" number="12">
-<h1><span class="header-section-number">12</span> Agriculture</h1>
+<div id="agriculture" class="section level1" number="10">
+<h1><span class="header-section-number">10</span> Agriculture</h1>
 <pre class="r"><code>agri &lt;- getQuery(prj, &quot;Agriculture final energy by service and fuel&quot;) %&gt;%
   filter(region == &quot;GJ&quot;, year &gt; 2010) %&gt;%
   group_by(scenario, year) %&gt;%
@@ -2661,8 +2653,8 @@ ggplot() +
 )
 #############################</code></pre>
 </div>
-<div id="new-scenario" class="section level1" number="13">
-<h1><span class="header-section-number">13</span> New Scenario</h1>
+<div id="new-scenario" class="section level1" number="11">
+<h1><span class="header-section-number">11</span> New Scenario</h1>
 <pre class="r"><code>new_scen &lt;- read_delim(&quot;data/new-scen.txt&quot;, 
     delim = &quot;\t&quot;, escape_double = FALSE, 
     trim_ws = TRUE) %&gt;% 
@@ -2685,8 +2677,8 @@ ggsave(&quot;output_plots/new-ccs-scen.png&quot;,
   device = &quot;png&quot;, dpi = &quot;print&quot;,
   width = 6, height = 5
 )</code></pre>
-<div id="coal-gen-comparison" class="section level2" number="13.1">
-<h2><span class="header-section-number">13.1</span> coal gen
+<div id="coal-gen-comparison" class="section level2" number="11.1">
+<h2><span class="header-section-number">11.1</span> coal gen
 comparison</h2>
 <pre class="r"><code>coal_gen &lt;- read_delim(&quot;data/coal-gen.txt&quot;,
   delim = &quot;\t&quot;, escape_double = FALSE,
