@@ -172,6 +172,7 @@ emi <- getQuery(prj, query = "CO2 emissions by tech") %>%
   group_by(scenario, year) %>%
   mutate(percent = value / sum(value), percent = percent * 100) %>%
   ungroup() %>%
+  mutate(value=value*3.67) %>% 
   mutate(Units = "MtCO2")
 
 # emi <- getQuery(prj,query = 'CO2 emissions by aggregate sector') %>%
@@ -190,7 +191,7 @@ emi$scenario <- factor(emi$scenario, levels = c("Reference", "Net_Zero"))
 
 emi_tot <- emi %>%
   group_by(scenario, year) %>%
-  summarise(value = sum(value * 3.67))
+  summarise(value = sum(value))
 
 writexl::write_xlsx(x = emi_tot, "output_data/AggEmissions.xlsx")
 
@@ -205,7 +206,7 @@ first_last_years <- annotate_data %>%
 ##################################################
 # Total emissions stacked area
 ggplot() +
-  geom_area(data = emi %>% filter(year > 2015), mapping = aes(x = year, y = value * 3.67, fill = sector)) +
+  geom_area(data = emi %>% filter(year > 2015), mapping = aes(x = year, y = value, fill = sector)) +
   facet_wrap(~scenario) +
   #  theme_pubclean(base_size = 12)+
   scale_fill_manual(values = my_custom_palette) +
@@ -474,6 +475,8 @@ elec_gen <- elec_gen %>%
   mutate(value = if_else(scenario == "Reference" & subsector == "coal", value + 0.0419, value)) %>%
   mutate(value = if_else(scenario == "Net_Zero" & subsector == "gas" & year < 2045, value - 0.0419, value)) %>%
   mutate(value = if_else(scenario == "Net_Zero" & subsector == "coal" & year < 2045, value + 0.0419, value)) %>%
+  mutate(value = if_else(subsector == "gas" & value<0,0,value)) %>% 
+  mutate(value = if_else(subsector == "coal" & value<0,0,value)) %>% 
   group_by(scenario, year) %>%
   mutate(percent = (value / sum(value)) * 100)
 
@@ -542,7 +545,7 @@ writexl::write_xlsx(elec_gen_share %>% filter(year > 2015, subsector %in% c("coa
 
 ## Cumulative Capacity and Capacity Addition
 ```{r}
-elec_cap <- read_excel("data/Cap_data_based_on3Oct24 file.xlsx",
+elec_cap <- read_excel("data/Cap_data_based_on22Jan25.xlsx",
   sheet = "Sheet1"
 ) %>%
   pivot_longer(2:10, names_to = "subsector", values_to = "value")
